@@ -73,6 +73,16 @@
   <div class="sl"><span>หน้าบ้าน (เสาโรงรถ → ประตูรั้ว)</span><span class="v" id="vF"></span><input type="range" id="sF" min="1.3" max="6" step="0.05" value="2.30"></div>
   <div class="sl"><span>สวนยื่นเลยแนวรั้วหน้า</span><span class="v" id="vG"></span><input type="range" id="sG" min="2" max="25" step="0.1" value="12"></div>
 
+  <h2>ทดลองวางห้องทำงาน (เว้นจากรั้ว 0.50 ม.)</h2>
+  <div class="btns" id="opts">
+    <button data-o="none" class="on">ไม่แสดง</button>
+    <button data-o="a1">A1 ปิดระเบียงเดิม</button>
+    <button data-o="a2">A2 คอร์ทยาดเต็ม</button>
+    <button data-o="b">B หลังบ้านยาว</button>
+    <button data-o="c">C มุมซ้าย–หลัง (ตัว L)</button>
+  </div>
+  <div id="tOpt" style="margin-top:6px;font-weight:600;color:#6b3fa0"></div>
+
   <h2>สรุปพื้นที่</h2>
   <table>
     <tr><td>เนื้อที่ดินโดยประมาณ</td><td id="tArea"></td></tr>
@@ -380,8 +390,9 @@ B(gCar, -0.33,5.48, 7.6,12.93, 3.4,3.5, M.white);
 }
 
 /* ---------- บริเวณรอบบ้าน (สร้างใหม่เมื่อเลื่อนแถบ) ---------- */
-const gSite = new THREE.Group(), gFence = new THREE.Group(), gPlant = new THREE.Group(), gZone = new THREE.Group(), gDim = new THREE.Group();
-scene.add(gSite, gFence, gPlant, gZone, gDim);
+const gSite = new THREE.Group(), gFence = new THREE.Group(), gPlant = new THREE.Group(), gZone = new THREE.Group(), gDim = new THREE.Group(), gOpt = new THREE.Group();
+scene.add(gSite, gFence, gPlant, gZone, gDim, gOpt);
+let opt = 'none';
 const P = {W:2.0, E:4.5, Bk:2.5, F:2.3, G:12};
 const clear = g => { while(g.children.length){ const o = g.children.pop(); o.traverse?.(c=>{ c.geometry?.dispose(); }); } };
 
@@ -411,8 +422,20 @@ function dim(x1,z1,x2,z2,y=0.5){
   const s = label(Math.hypot(x2-x1,z2-z1).toFixed(2)+' ม.', {bg:'#d0021b', fg:'#fff', h:.36}); s.position.set((x1+x2)/2, y+.35, (z1+z2)/2); gDim.add(s);
 }
 
+// ห้องทำงานทดลองวาง: กล่องกระจก + หลังคาแบน + โต๊ะทำงาน
+const oGlass = std({color:0x9b7fd6, transparent:true, opacity:.28, depthWrite:false}), oRoof = std({color:0xffffff, transparent:true, opacity:.45, depthWrite:false}), oFrame = std({color:0x4b2f7a});
+function room(x1,x2,z1,z2,desk=true){
+  const g = gOpt, h0 = .38, h1 = 2.9, w = x2-x1, d = z2-z1; if(w<.8||d<.8) return 0;
+  B(g, x1,x2, z1,z2, 0,h0, M.deck); B(g, x1-.12,x2+.12, z1-.12,z2+.12, h1,h1+.12, oRoof, false);
+  B(g, x1,x1+.06, z1,z2, h0,h1, oGlass, false); B(g, x2-.06,x2, z1,z2, h0,h1, oGlass, false); B(g, x1,x2, z1,z1+.06, h0,h1, oGlass, false); B(g, x1,x2, z2-.06,z2, h0,h1, oGlass, false);
+  for(const [x,z] of [[x1,z1],[x2,z1],[x1,z2],[x2,z2]]) B(g, x-.05,x+.05, z-.05,z+.05, h0,h1, oFrame);
+  if(desk){ const cx = (x1+x2)/2, cz = (z1+z2)/2, lx = w>=d;                       // โต๊ะ 1.6×0.7 ม. + เก้าอี้
+    lx ? B(g, cx-.8,cx+.8, z1+.15,z1+.85, h0+.72,h0+.76, M.white) : B(g, x1+.15,x1+.85, cz-.8,cz+.8, h0+.72,h0+.76, M.white);
+    lx ? B(g, cx-.25,cx+.25, z1+1.0,z1+1.5, h0,h0+.45, M.person) : B(g, x1+1.0,x1+1.5, cz-.25,cz+.25, h0,h0+.45, M.person); }
+  return w*d;
+}
 function buildSite(){
-  seed = 11; [gSite,gFence,gPlant,gZone,gDim].forEach(clear);
+  seed = 11; [gSite,gFence,gPlant,gZone,gDim,gOpt].forEach(clear);
   const x0 = -P.W, x1 = 10.65+P.E, z0 = -P.Bk, zF = 11.7+P.F, zG = zF+P.G, hasG = P.G > 0.5;
   const plane = (xa,xb,za,zb,mat,y=0)=>{ const m = new THREE.Mesh(new THREE.PlaneGeometry(xb-xa, zb-za), mat); m.rotation.x = -Math.PI/2; m.position.set((xa+xb)/2, y, (za+zb)/2); m.receiveShadow = true; gSite.add(m); };
   // สนามหญ้า
@@ -455,6 +478,7 @@ function buildSite(){
 
   // ---- ต้นไม้ / สวน ----
   const g = gPlant;
+  if(!['a2','c'].includes(opt)){
   B(g, x0+.08,x0+.65, 0.8,5.0, 0,2.0, M.hedge);                                  // แนวไม้พุ่มรั้วซ้าย
   B(g, x0+.08,x0+.65, 5.6,7.6, 0,2.1, M.hedge);
   // คอร์ทยาด: น้ำพุ + ไม้ประดับ
@@ -462,6 +486,7 @@ function buildSite(){
     const b = new THREE.Mesh(new THREE.CylinderGeometry(.48,.48,.4,20,1,false,0,Math.PI), M.fence); b.rotation.y = Math.PI/2; b.position.set(.275,.2,7.25); b.castShadow = true; g.add(b); }
   tree(g, -.75, 7.0, 2.6, false);
   for(const [x,z,r] of [[1.2,7.4,.38],[1.75,7.35,.3],[-.2,6.2,.4],[.4,6.5,.3],[1.6,5.45,.25],[1.2,5.5,.22]]) blob(g, x, z, r, r>.3?M.hedge:M.shrub);
+  }
   // หน้าบ้าน
   B(g, 7.85,10.6, 9.75,10.35, 0,.45, M.shrub);
   { const c = new THREE.Mesh(new THREE.ConeGeometry(.55,2.7,14), M.hedge); c.position.set(11.05,1.45,10.1); c.castShadow = true; g.add(c); }
@@ -492,6 +517,16 @@ function buildSite(){
   dim(10.65, 5.8, x1, 5.8); dim(2.6, 11.7, 2.6, zF, .3);
   if(hasG){ dim(XW, zF+P.G/2, x1, zF+P.G/2); dim(x1-2.2, zF, x1-2.2, zG); }
 
+  // ---- ห้องทำงานทดลองวาง ----
+  { const S = .5, f2 = n => n.toFixed(2); let txt = '', a = 0, lx = 0, lz = 0;
+    if(opt==='a1'){ a = room(1.95,5.3,5.13,7.8); txt = `A1: 3.35 × 2.67 ม. = ${a.toFixed(1)} ตร.ม.`; lx = 3.6; lz = 6.5; }
+    if(opt==='a2'){ a = room(x0+S,5.3,5.13,7.8); txt = `A2: ${f2(5.3-x0-S)} × 2.67 ม. = ${a.toFixed(1)} ตร.ม.`; lx = (x0+S+5.3)/2; lz = 6.5; }
+    if(opt==='b'){ a = room(x0+S,7.4,z0+S,0.6); txt = `B: ${f2(7.4-x0-S)} × ${f2(0.6-z0-S)} ม. = ${a.toFixed(1)} ตร.ม.`; lx = (x0+S+7.4)/2; lz = (z0+S+.6)/2; }
+    if(opt==='c'){ const a1 = room(x0+S,2.0,z0+S,0.6), a2 = room(x0+S,0.82,0.6,5.05,false); a = a1+a2;
+      txt = `C: ${f2(2.0-x0-S)} × ${f2(0.6-z0-S)} + ${f2(0.82-x0-S)} × 4.45 ม. = ${a.toFixed(1)} ตร.ม.`; lx = (x0+S+2)/2; lz = (z0+S+.6)/2; }
+    if(a){ const sp = label('ห้องทำงาน '+txt, {bg:'#6b3fa0', fg:'#fff', h:.5}); sp.position.set(lx, 3.7, lz); gOpt.add(sp); }
+    document.getElementById('tOpt').textContent = txt; }
+
   const f = n => n.toFixed(2), area = (x1-x0)*(zF-z0) + (hasG ? (x1-XW)*P.G : 0);
   for(const [id,k] of [['vW','W'],['vE','E'],['vB','Bk'],['vF','F'],['vG','G']]) document.getElementById(id).textContent = f(P[k])+' ม.';
   document.getElementById('tArea').textContent = `${area.toFixed(0)} ตร.ม. (${(area/4).toFixed(0)} ตร.ว.)`;
@@ -507,6 +542,7 @@ const $ = id => document.getElementById(id);
 [['sW','W'],['sE','E'],['sB','Bk'],['sF','F'],['sG','G']].forEach(([id,k])=> $(id).addEventListener('input', e=>{ P[k] = +e.target.value; buildSite(); }));
 const bind = (id, g) => $(id).addEventListener('change', e => g.visible = e.target.checked);
 bind('kCar', gCar); bind('kZone', gZone); bind('kDim', gDim); bind('kLab', gLab); bind('kFurn', gFurn); bind('kPlant', gPlant); bind('kFence', gFence);
+document.querySelectorAll('#opts button').forEach(b=> b.onclick = ()=>{ opt = b.dataset.o; document.querySelectorAll('#opts button').forEach(x=>x.classList.toggle('on', x===b)); buildSite(); });
 $('hide').onclick = ()=> document.body.classList.toggle('nopanel');
 
 const ghostMat = std({color:0x9fb6c4, transparent:true, opacity:.16, depthWrite:false});
