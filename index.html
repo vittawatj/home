@@ -45,6 +45,8 @@
     <button data-v="front">หน้าบ้าน</button>
     <button data-v="garden">สวน</button>
     <button data-v="inside">ภายในชั้น 1</button>
+    <button data-v="office">ห้องทำงาน A3</button>
+    <button data-v="officeT">ผังห้องทำงาน A3</button>
     <button data-v="sofa">โซฟา</button>
     <button data-v="dine">โต๊ะกินข้าว</button>
     <button data-v="tv">ผนังทีวี</button>
@@ -79,6 +81,7 @@
   <div class="btns" id="opts">
     <button data-o="none" class="on">ไม่แสดง</button>
     <button data-o="a1">A1 ปิดระเบียงเดิม</button>
+    <button data-o="a3">A3 ถึงแนวเสาโรงรถ</button>
     <button data-o="a2">A2 คอร์ทยาดเต็ม</button>
     <button data-o="b">B หลังบ้านยาว</button>
     <button data-o="c">C มุมซ้าย–หลัง (ตัว L)</button>
@@ -473,6 +476,57 @@ function room(x1,x2,z1,z2,desk=true){
     lx ? B(g, cx-.25,cx+.25, z1+1.0,z1+1.5, h0,h0+.45, M.person) : B(g, x1+1.0,x1+1.5, cz-.25,cz+.25, h0,h0+.45, M.person); }
   return w*d;
 }
+// ห้องทำงาน A3 (คอร์ทยาด ถึงแนวเสาโรงรถ) จัดผังเต็ม
+function office3(ok){
+  const g = gOpt, y = FL, Hc = F2, cab = std({color:0xfbfbfa, roughness:.6}), greige = std({color:0xc9c2b8, roughness:.8}), blk = std({color:0x161616, roughness:.4, metalness:.3});
+  const led = std({color:0xfff3d6, emissive:0xffe2a8, emissiveIntensity:1});
+  const RB = (xa,xb,za,zb,ya,yb,mat,r=.05)=>{ const m = new THREE.Mesh(new RoundedBoxGeometry(xb-xa,yb-ya,zb-za,3,Math.min(r,(xb-xa)/2-.001,(yb-ya)/2-.001,(zb-za)/2-.001)), mat); m.position.set((xa+xb)/2,(ya+yb)/2,(za+zb)/2); m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+  // พื้นไม้ระดับเดียวกับห้องรับแขก
+  B(g, 0,5.3, 5.13,7.8, 0,y, tiled(M.wood, 13,6.7));
+  // ผนังซ้าย: หน้าต่างบานใหญ่มองสวน (ถ้าห่างรั้ว ≥ 2 ม.) หรือผนังทึบ + สกายไลท์
+  wall(g,'z',0, 5.13,7.8, y,Hc, .15, M.wall, ok ? [{s:5.5,e:7.45,sill:.8,head:2.45}] : []);
+  B(g, -.25,1.95, 5.05,7.95, Hc,Hc+.2, std({color:0xffffff, transparent:true, opacity:.35, depthWrite:false}), false);   // หลังคาส่วนต่อเติม (โปร่งให้มองเห็นภายใน)
+  if(!ok) B(g, .35,1.6, 5.7,7.2, Hc+.2,Hc+.23, M.glass, false);                                                       // สกายไลท์
+  // ช่องตะแกรงหลังโรงรถ → กระจกฝ้า (กันคนมองจากโรงรถ)
+  B(g, 2.2,3.2, 7.705,7.72, .75,2.45, std({color:0xe8eef0, roughness:.2, transparent:true, opacity:.85}), false);
+  // โต๊ะทำงานยาว 1.9 ม. ชิดผนังโรงรถ แสงเข้าด้านซ้าย
+  { const za = 7.0, zb = 7.72, xa = .25, xb = 2.15;
+    B(g, xa,xb, za,zb, y+.72,y+.76, std({color:0xf2f1ee, roughness:.3}));
+    B(g, xb-.45,xb, za+.03,zb, y,y+.72, cab); for(const h of [.25,.48]) B(g, xb-.44,xb-.01, za+.025,za+.03, y+h-.005,y+h+.005, M.trim, false);
+    for(const h of [.14,.37,.6]) B(g, xb-.24,xb-.21, za,za+.025, y+h,y+h+.03, M.black, false);
+    B(g, xa,xa+.04, za+.03,zb, y,y+.72, cab);
+    // จอ 2 จอ + คีย์บอร์ด + โคมไฟตั้งโต๊ะ
+    for(const cx of [.82,1.5]){ B(g, cx-.31,cx+.31, 7.48,7.51, y+.95,y+1.31, blk, false); B(g, cx-.03,cx+.03, 7.52,7.56, y+.76,y+.98, blk, false); B(g, cx-.12,cx+.12, 7.45,7.62, y+.76,y+.77, blk, false); }
+    B(g, .92,1.42, 7.12,7.26, y+.76,y+.78, std({color:0x2a2a2a})); { const l = new THREE.Mesh(new THREE.SphereGeometry(.09,16,12), led); l.position.set(.38,y+1.05,7.5); g.add(l); B(g, .35,.41, 7.47,7.53, y+.76,y+.97, blk, false); }
+    // ชั้นลอยเหนือโต๊ะ + ไฟซ่อนใต้ชั้น
+    for(const h of [1.62,2.0]){ B(g, xa,xb, 7.47,7.72, y+h,y+h+.035, cab); }
+    B(g, xa+.05,xb-.05, 7.6,7.64, y+1.6,y+1.615, led, false);
+    // เก้าอี้ทำงานสีดำ
+    const cx = 1.17, cz = 6.55; RB(cx-.27,cx+.27, cz-.26,cz+.26, y+.45,y+.55, blk, .05); RB(cx-.25,cx+.25, cz+.2,cz+.3, y+.6,y+1.2, blk, .05);
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.4,10), blk); pole.position.set(cx,y+.25,cz); g.add(pole);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.03,5), blk); base.position.set(cx,y+.06,cz); g.add(base);
+  }
+  // ตู้บิลต์อินสูง (สไตล์เดียวกับในบ้าน): ล่างบานทึบ บนชั้นเปิดหลังเทา
+  { const xa = 3.3, xb = 5.22, za = 7.35, zb = 7.72, Ht = 2.55;
+    B(g, xa,xb, za,zb, y,y+Ht, cab); B(g, xa+.03,xb-.03, za-.01,za+.02, y+.88,y+Ht-.04, greige, false);
+    const n = 4; for(let i=0;i<n;i++){ const a = xa+i*(xb-xa)/n, b = a+(xb-xa)/n; B(g, a+.006,b-.006, za-.02,za, y+.08,y+.84, cab, false); B(g, a+.06,b-.06, za-.025,za-.02, y+.14,y+.78, M.white, false); B(g, (i%2? a+.06 : b-.09),(i%2? a+.09 : b-.06), za-.045,za-.025, y+.62,y+.65, M.black, false); }
+    B(g, xa,xb, za-.02,za+.02, y+.84,y+.88, M.trim, false);
+    for(let h=1.2; h<Ht-.15; h+=.38) B(g, xa+.03,xb-.03, za-.012,za+.3, y+h,y+h+.025, cab, false);
+    for(const x of [4.26]) B(g, x-.015,x+.015, za-.012,za+.3, y+.88,y+Ht-.04, cab, false);
+  }
+  // มุมอ่านหนังสือ: อาร์มแชร์ผ้าเทา + โต๊ะข้าง + โคมตั้งพื้นลูกกลม
+  { const fab = std({color:0x9a9896, roughness:1}); RB(4.45,5.15, 5.4,6.1, y,y+.42, fab, .08); RB(4.95,5.17, 5.4,6.1, y+.3,y+.9, fab, .08); RB(4.45,5.15, 5.4,5.55, y+.3,y+.62, fab, .06); RB(4.45,5.15, 5.95,6.1, y+.3,y+.62, fab, .06);
+    const st = new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.03,24), std({color:0xe9e9ea, roughness:.3})); st.position.set(4.75,y+.52,6.45); g.add(st);
+    const sl = new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.52,10), blk); sl.position.set(4.75,y+.26,6.45); g.add(sl);
+    B(g, 5.08,5.11, 6.33,6.36, y,y+1.55, blk, false); const gl = new THREE.Mesh(new THREE.SphereGeometry(.12,16,12), led); gl.position.set(5.0,y+1.6,6.35); g.add(gl); }
+  // พรม + ต้นไม้ในกระถาง + แอร์
+  B(g, .55,3.5, 5.45,6.95, y,y+.012, std({color:0xb8b2a8, roughness:1}), false);
+  { const pot = new THREE.Mesh(new THREE.CylinderGeometry(.2,.16,.42,20), blk); pot.position.set(.4,y+.21,5.5); g.add(pot);
+    for(let i=0;i<5;i++){ const m = new THREE.Mesh(new THREE.IcosahedronGeometry(.22+i*.02,1), M.leaf[i%4]); m.position.set(.4+(i%2?.12:-.1), y+.85+i*.18, 5.5+(i%3-1)*.1); m.castShadow = true; g.add(m); }
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(.025,.035,1.2,8), M.trunk); t.position.set(.4,y+.8,5.5); g.add(t); }
+  B(g, 5.0,5.22, 6.55,7.3, y+2.5,y+2.8, std({color:0x1b1c1e, roughness:.4}), false);
+  return 5.3*2.67;
+}
 function buildSite(){
   seed = 11; [gSite,gFence,gPlant,gZone,gDim,gOpt].forEach(clear);
   const x0 = -P.W, x1 = 10.65+P.E, z0 = 0.6-P.Bk, zF = 11.7+P.F, zG = zF+P.G, hasG = P.G > 0.5;
@@ -520,12 +574,15 @@ function buildSite(){
   if(!['a2','c'].includes(opt)){
   B(g, x0+.08,x0+.65, 0.8,5.0, 0,2.0, M.hedge);                                  // แนวไม้พุ่มรั้วซ้าย
   B(g, x0+.08,x0+.65, 5.6,7.6, 0,2.1, M.hedge);
-  // คอร์ทยาด: น้ำพุ + ไม้ประดับ
-  B(g, .1,.45, 7.25,7.6, 0,1.25, M.fence); { const c = new THREE.Mesh(new THREE.ConeGeometry(.27,.25,4), M.fence); c.rotation.y = Math.PI/4; c.position.set(.275,1.37,7.425); g.add(c);
-    const b = new THREE.Mesh(new THREE.CylinderGeometry(.48,.48,.4,20,1,false,0,Math.PI), M.fence); b.rotation.y = Math.PI/2; b.position.set(.275,.2,7.25); b.castShadow = true; g.add(b); }
-  tree(g, -.75, 7.0, 2.6, false);
-  for(const [x,z,r] of [[1.2,7.4,.38],[1.75,7.35,.3],[-.2,6.2,.4],[.4,6.5,.3],[1.6,5.45,.25],[1.2,5.5,.22]]) blob(g, x, z, r, r>.3?M.hedge:M.shrub);
   }
+  // คอร์ทยาด: น้ำพุ + ไม้ประดับ (ถ้าห้องทำงานกินพื้นที่ ย้ายไปไว้นอกห้อง)
+  const fountain = (fx,fz)=>{ B(g, fx-.175,fx+.175, fz-.175,fz+.175, 0,1.25, M.fence); const c = new THREE.Mesh(new THREE.ConeGeometry(.27,.25,4), M.fence); c.rotation.y = Math.PI/4; c.position.set(fx,1.37,fz); g.add(c);
+    const b = new THREE.Mesh(new THREE.CylinderGeometry(.48,.48,.4,20,1,false,0,Math.PI), M.fence); b.rotation.y = Math.PI/2; b.position.set(fx,.2,fz-.175); b.castShadow = true; g.add(b); };
+  if(!['a2','c','a3'].includes(opt)){
+    fountain(.275, 7.425); tree(g, -.75, 7.0, 2.6, false);
+    for(const [x,z,r] of [[1.2,7.4,.38],[1.75,7.35,.3],[-.2,6.2,.4],[.4,6.5,.3],[1.6,5.45,.25],[1.2,5.5,.22]]) blob(g, x, z, r, r>.3?M.hedge:M.shrub);
+  }
+  if(opt==='a3' && P.W>1.2){ fountain((x0+.65+0)/2, 7.425); tree(g, (x0+.65)/2+.1, 5.6, 2.4, false); blob(g, -.35, 6.4, .3, M.shrub); }
   // หน้าบ้าน
   B(g, 7.85,10.6, 9.75,10.35, 0,.45, M.shrub);
   { const c = new THREE.Mesh(new THREE.ConeGeometry(.55,2.7,14), M.hedge); c.position.set(11.05,1.45,10.1); c.castShadow = true; g.add(c); }
@@ -559,11 +616,15 @@ function buildSite(){
   // ---- ห้องทำงานทดลองวาง ----
   { const S = .5, f2 = n => n.toFixed(2); let txt = '', a = 0, lx = 0, lz = 0;
     if(opt==='a1'){ a = room(1.95,5.3,5.13,7.8); txt = `A1: 3.35 × 2.67 ม. = ${a.toFixed(1)} ตร.ม.`; lx = 3.6; lz = 6.5; }
+    if(opt==='a3'){ const ok = P.W >= 2.0; a = office3(ok);
+      txt = `A3: 5.30 × 2.67 ม. = ${a.toFixed(1)} ตร.ม. · ห่างรั้ว ${f2(P.W)} ม. → ผนังซ้าย${ok ? 'มีหน้าต่างได้' : 'ต้องทึบ'}`; lx = 2.65; lz = 6.5;
+      dim(x0, 7.0, 0, 7.0, .6);
+      if(!ok) B(gOpt, -.09,-.075, 5.13,7.8, .45,2.9, std({color:0xc0392b, transparent:true, opacity:.55}), false); }
     if(opt==='a2'){ a = room(x0+S,5.3,5.13,7.8); txt = `A2: ${f2(5.3-x0-S)} × 2.67 ม. = ${a.toFixed(1)} ตร.ม.`; lx = (x0+S+5.3)/2; lz = 6.5; }
     if(opt==='b'){ a = room(x0+S,7.4,z0+S,0.6); txt = `B: ${f2(7.4-x0-S)} × ${f2(0.6-z0-S)} ม. = ${a.toFixed(1)} ตร.ม.`; lx = (x0+S+7.4)/2; lz = (z0+S+.6)/2; }
     if(opt==='c'){ const a1 = room(x0+S,2.0,z0+S,0.6), a2 = room(x0+S,0.82,0.6,5.05,false); a = a1+a2;
       txt = `C: ${f2(2.0-x0-S)} × ${f2(0.6-z0-S)} + ${f2(0.82-x0-S)} × 4.45 ม. = ${a.toFixed(1)} ตร.ม.`; lx = (x0+S+2)/2; lz = (z0+S+.6)/2; }
-    if(a){ const sp = label('ห้องทำงาน '+txt, {bg:'#6b3fa0', fg:'#fff', h:.5}); sp.position.set(lx, 3.7, lz); gOpt.add(sp); }
+    if(a){ const sp = label('ห้องทำงาน '+txt, {bg:'#6b3fa0', fg:'#fff', h:.5}); sp.position.set(lx, 3.7, lz); gZone.add(sp); }
     document.getElementById('tOpt').textContent = txt; }
 
   const f = n => n.toFixed(2), area = (x1-x0)*(zF-z0) + (hasG ? (x1-XW)*P.G : 0);
@@ -602,13 +663,16 @@ const views = {
   tv:    ()=>[[6.4, 1.95, 2.45],[1, 1.5, 2.45]],
   desk:  ()=>[[6.2, 1.95, 6.9],[10, 1.35, 7.3]],
   arch:  ()=>[[6.8, 1.95, 0.9],[6.825, 1.55, 5.1]],
+  office:()=>[[5.05, 1.6, 5.35],[0.9, 1.15, 7.3]],
+  officeT:()=>[[2.65, 9.5, 5.2],[2.65, 0, 6.45]],
   inside:()=>[[5.6, 13, -6.5],[5.6, .5, 3.8]],
   court: ()=>[[-P.W-4.5, 9, 1.5],[1.6, .5, 6.3]],
   back:  ()=>[[1.5, 8.5, 0.6-P.Bk-10],[5, .8, 1]],
   front: ()=>[[-1.5, 2.2, 11.7+P.F+13],[6, 2.6, 9]],
   garden:()=>[[(XW+10.65+P.E)/2-.3, 1.6, 11.7+P.F+P.G-2.2],[8, 2.8, 9.5]],
 };
-function setView(k){ if(['inside','tv','arch','desk','dine','sofa'].includes(k)) setMode('g'); const [p,t] = views[k](); camera.position.set(...p); controls.target.set(...t); controls.update(); }
+function setView(k){ if(['inside','tv','arch','desk','dine','sofa','office','officeT'].includes(k)) setMode('g');
+  if(['office','officeT'].includes(k) && opt!=='a3') document.querySelector('#opts [data-o=a3]').click(); const [p,t] = views[k](); camera.position.set(...p); controls.target.set(...t); controls.update(); }
 document.querySelectorAll('#views button').forEach(b=> b.onclick = ()=> setView(b.dataset.v));
 setView('over');
 
