@@ -69,7 +69,7 @@
   <h2>ระยะจากตัวบ้านถึงรั้ว (ปรับให้ตรงของจริง)</h2>
   <div class="sl"><span>ซ้าย (ฝั่งคอร์ทยาด)</span><span class="v" id="vW"></span><input type="range" id="sW" min="0.5" max="6" step="0.05" value="2.00"></div>
   <div class="sl"><span>ขวา (ถึงกำแพงโครงการ)</span><span class="v" id="vE"></span><input type="range" id="sE" min="1" max="12" step="0.05" value="4.50"></div>
-  <div class="sl"><span>หลังบ้าน</span><span class="v" id="vB"></span><input type="range" id="sB" min="2.4" max="8" step="0.05" value="2.50"></div>
+  <div class="sl"><span>หลังบ้าน (ผนังบานเลื่อน → กำแพง) ✓ วัดจริง</span><span class="v" id="vB"></span><input type="range" id="sB" min="2.5" max="8" step="0.05" value="3.00"></div>
   <div class="sl"><span>หน้าบ้าน (เสาโรงรถ → ประตูรั้ว)</span><span class="v" id="vF"></span><input type="range" id="sF" min="1.3" max="6" step="0.05" value="2.30"></div>
   <div class="sl"><span>สวนยื่นเลยแนวรั้วหน้า</span><span class="v" id="vG"></span><input type="range" id="sG" min="2" max="25" step="0.1" value="12"></div>
 
@@ -393,7 +393,7 @@ B(gCar, -0.33,5.48, 7.6,12.93, 3.4,3.5, M.white);
 const gSite = new THREE.Group(), gFence = new THREE.Group(), gPlant = new THREE.Group(), gZone = new THREE.Group(), gDim = new THREE.Group(), gOpt = new THREE.Group();
 scene.add(gSite, gFence, gPlant, gZone, gDim, gOpt);
 let opt = 'none';
-const P = {W:2.0, E:4.5, Bk:2.5, F:2.3, G:12};
+const P = {W:2.0, E:4.5, Bk:3.0, F:2.3, G:12};
 const clear = g => { while(g.children.length){ const o = g.children.pop(); o.traverse?.(c=>{ c.geometry?.dispose(); }); } };
 
 function blob(g, x, z, r, mat, y=r*.8){ const m = new THREE.Mesh(new THREE.IcosahedronGeometry(r,1), mat); m.position.set(x,y,z); m.castShadow = true; g.add(m); return m; }
@@ -436,7 +436,7 @@ function room(x1,x2,z1,z2,desk=true){
 }
 function buildSite(){
   seed = 11; [gSite,gFence,gPlant,gZone,gDim,gOpt].forEach(clear);
-  const x0 = -P.W, x1 = 10.65+P.E, z0 = -P.Bk, zF = 11.7+P.F, zG = zF+P.G, hasG = P.G > 0.5;
+  const x0 = -P.W, x1 = 10.65+P.E, z0 = 0.6-P.Bk, zF = 11.7+P.F, zG = zF+P.G, hasG = P.G > 0.5;
   const plane = (xa,xb,za,zb,mat,y=0)=>{ const m = new THREE.Mesh(new THREE.PlaneGeometry(xb-xa, zb-za), mat); m.rotation.x = -Math.PI/2; m.position.set((xa+xb)/2, y, (za+zb)/2); m.receiveShadow = true; gSite.add(m); };
   // สนามหญ้า
   plane(x0,x1, z0,zF, tiled(M.grass, (x1-x0)/2, (zF-z0)/2));
@@ -563,7 +563,7 @@ const views = {
   arch:  ()=>[[6.8, 1.95, 0.9],[6.825, 1.55, 5.1]],
   inside:()=>[[5.6, 13, -6.5],[5.6, .5, 3.8]],
   court: ()=>[[-P.W-4.5, 9, 1.5],[1.6, .5, 6.3]],
-  back:  ()=>[[1.5, 8.5, -P.Bk-10],[5, .8, 1]],
+  back:  ()=>[[1.5, 8.5, 0.6-P.Bk-10],[5, .8, 1]],
   front: ()=>[[-1.5, 2.2, 11.7+P.F+13],[6, 2.6, 9]],
   garden:()=>[[(XW+10.65+P.E)/2-.3, 1.6, 11.7+P.F+P.G-2.2],[8, 2.8, 9.5]],
 };
