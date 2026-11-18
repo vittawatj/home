@@ -24,6 +24,8 @@
   .note{font-size:11px;color:#6a5a2a;background:#fff6d8;border-radius:7px;padding:7px 9px;margin-top:10px}
   #hint{position:fixed;right:12px;bottom:10px;background:rgba(255,255,255,.85);border-radius:8px;padding:6px 10px;font-size:12px}
   #hide{position:fixed;top:12px;left:310px;z-index:5}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px;border:1px solid rgba(0,0,0,.25)}
+  table.spec{margin-top:5px} table.spec td{vertical-align:top;padding:2px 0;font-size:11.5px} table.spec td:first-child{color:#6b7c88;width:52px;font-weight:600} table.spec td:last-child{text-align:left;font-weight:400}
   body.nopanel #panel{display:none} body.nopanel #hide{left:12px}
 </style>
 <script type="importmap">
@@ -91,13 +93,8 @@
     <button data-d="wall" class="on">A3 โต๊ะชิดผนังโรงรถ</button>
     <button data-d="window">A3 โต๊ะหันออกสวน</button>
   </div>
-  <h2>ธีมห้องคอม A3 (กดเลือกเพื่อเทียบ)</h2>
-  <div class="btns" id="themeOpts">
-    <button data-t="midnight" class="on">Midnight Studio</button>
-    <button data-t="industrial">Industrial Loft</button>
-    <button data-t="command">Command Center</button>
-    <button data-t="japandi">Japandi Calm</button>
-  </div>
+  <h2>ธีมห้องคอม A3 · 14 แบบ (กดเลือกเพื่อเทียบ)</h2>
+  <div class="btns" id="themeOpts"></div>
   <div id="tTheme" style="margin-top:6px;font-size:12px;color:#3d5a6c"></div>
   <div id="tOpt" style="margin-top:6px;font-weight:600;color:#6b3fa0"></div>
 
@@ -492,19 +489,86 @@ function room(x1,x2,z1,z2,desk=true){
 // ห้องทำงาน A3 (คอร์ทยาด ถึงแนวเสาโรงรถ): ห้องคอมในฝัน โทนเข้ม + ไฟ LED
 let deskMode = 'wall';
 let officeTheme = 'midnight';
+const hx = c => '#'+c.toString(16).padStart(6,'0');
+const TH_DEF = {floorC:0xffffff, ceilC:0xf6f3ee, accentC:0x8a6a4a, accent2:0x333333, slatC:null, fm:.3, chairStyle:'office', chairAcc:0x131416,
+  sofaStyle:'std', pillows:[0x1b1b1b,0xd9d4c9,0x1b1b1b], throwC:null, rugStyle:'plain', rug2:0x000000, decor:'none', decorC:[0x333333,0x777777,0xbbbbbb], decorText:'',
+  pc:0x131416, ac:0x1b1c1e, metal:0x131416, pendC:0x131416, lanternC:0xfff1d8, floorLamp:null, coffee:'round', extra:null, extraC:0x8a5a35,
+  curtain:0x3b2a1f, deskWall:'peg', fill:['books'], cubbyGlow:false, ladder:false, spk:'small', screen:0x2a6f9e, mugC:0xf2f2f2,
+  bookC:[0x1e2a3a,0x6b2020,0xd8cfbf,0x2f4a3a,0x8a6a2a,0x222222], boxC:[0x222222,0x555555], spec:[]};
 const THEMES = {
   midnight:  {name:'Midnight Studio', wall:0x1d2230, floor:'plankDark', ceil:'stars', accent:'none', led:[0xb04dff,0x3d6bff], pl:[0xb46bff,0x3d6bff],
               desk:0x4a2f1f, ped:0x1a1b1e, legs:'ped', peg:0x2a2c31, sofa:0x23413a, sofaR:.85, rug:0x2a2233, shelf:0x5c3d27, frame:0x131416, chair:0x131416, wallSide:'bookcase', lights:'track', monitors:2,
-              desc:'โทนน้ำเงินเข้ม เพดานดาว ไฟซ่อนม่วง/น้ำเงิน · นั่งทำงานกลางคืนสบายตา จอไม่สะท้อน · มุมโซฟาอ่านหนังสือหน้าตู้หนังสือจรดเพดาน'},
+              decor:'hex', floorLamp:'tube', extra:'telescope', throwC:0x3d3550, rugStyle:'border', rug2:0x6a4a9a, mugC:0x2a2233,
+              desc:'โทนน้ำเงินเข้ม เพดานดาว ไฟซ่อนม่วง/น้ำเงิน · นั่งทำงานกลางคืนสบายตา จอไม่สะท้อน · มุมโซฟาอ่านหนังสือหน้าตู้หนังสือจรดเพดาน',
+              spec:[['พื้น','ไม้โทนเข้ม (วอลนัทรมดำ)'],['ผนัง','น้ำเงินกรมท่าเข้ม · เพดานลายดาว'],['โต๊ะ','ท็อปวอลนัท + ตู้ลิ้นชักดำ 2 ฝั่ง'],['เก้าอี้','เก้าอี้ทำงานดำด้าน'],['โซฟา','กำมะหยี่เขียวมรกต + ผ้าห่มม่วงเทา'],['ไฟ','รางไฟดำ + LED ม่วง/น้ำเงิน + แท่งไฟตั้งพื้น'],['ของเด่น','กล้องโทรทรรศน์ริมหน้าต่าง · โคมหกเหลี่ยมเรืองแสง']]},
   industrial:{name:'Industrial Loft', wall:0x5f5c58, floor:'concrete', ceil:'concrete', accent:'brick', led:[0xffa64d,0xffa64d], pl:[0xffa040,0xffc070],
               desk:0x9c6b3e, ped:0x1b1b1b, legs:'steel', peg:0x1b1b1b, sofa:0x7a3e1d, sofaR:.45, rug:0x5a2e22, shelf:0x8a5a35, frame:0x1a1a1a, chair:0x222222, wallSide:'steel', lights:'edison', monitors:2,
-              desc:'ผนังอิฐดำ พื้นปูนขัดมัน ชั้นเหล็กเปิดโล่ง โซฟาหนังคอนยัค หลอดเอดิสัน · วัสดุทนทาน ดูแลง่าย · หยิบของจากชั้นเปิดได้ทันที'},
+              decor:'blueprint', floorLamp:'tripod', extra:'guitar', extraC:0x111111, coffee:'drum', metal:0x2a2a2a, throwC:0x6b6b5a, pillows:[0x2d2d2d,0xb08850,0x2d2d2d], rugStyle:'stripe', rug2:0x3a1d16,
+              desc:'ผนังอิฐดำ พื้นปูนขัดมัน ชั้นเหล็กเปิดโล่ง โซฟาหนังคอนยัค หลอดเอดิสัน · วัสดุทนทาน ดูแลง่าย · หยิบของจากชั้นเปิดได้ทันที',
+              spec:[['พื้น','ปูนขัดมัน'],['ผนัง','เทาควันบุหรี่ + ผนังอิฐดำ'],['โต๊ะ','ไม้โอ๊ครมควัน ขาเหล็กดำ'],['เก้าอี้','ดำด้าน'],['โซฟา','หนังคอนยัค + ผ้าห่มเขียวขี้ม้า'],['ไฟ','หลอดเอดิสันห้อย + โคมสามขา'],['ของเด่น','กีตาร์ไฟฟ้าดำ · กรอบพิมพ์เขียวเรืองแสง · โต๊ะข้างถังเหล็ก']]},
   command:   {name:'Command Center', wall:0x0d0e11, floor:'tile', ceil:'black', accent:'hex', led:[0xff1f4b,0x18e0ff], pl:[0xff2050,0x10d0ff],
               desk:0x111214, ped:0x111214, legs:'ped', peg:0x111214, sofa:0x161616, sofaR:.4, rug:0x15161a, shelf:0x111214, frame:0x0a0a0a, chair:0xb3122c, wallSide:'media', lights:'track', monitors:3,
-              desc:'ห้องเกมมิ่ง ผนังดำ แผ่นซับเสียงหกเหลี่ยม ไฟ RGB · โต๊ะตัว L จอ 3 จอ · ทีวี 55" + ตู้โชว์กระจก เล่นเกมคอนโซลจากโซฟาได้ · แผ่นซับเสียงช่วยเก็บเสียง'},
+              chairStyle:'gaming', chairAcc:0x111214, deskWall:'none', floorLamp:'tube', extra:'speaker', pillows:[0xff1f4b,0x18e0ff,0x111111], rugStyle:'border', rug2:0xff1f4b, mugC:0xb3122c,
+              desc:'ห้องเกมมิ่ง ผนังดำ แผ่นซับเสียงหกเหลี่ยม ไฟ RGB · โต๊ะตัว L จอ 3 จอ · ทีวี 55" + ตู้โชว์กระจก เล่นเกมคอนโซลจากโซฟาได้',
+              spec:[['พื้น','กระเบื้องดำด้าน'],['ผนัง','ดำ + แผ่นซับเสียงหกเหลี่ยม RGB'],['โต๊ะ','ตัว L ดำ จอ 3 จอ'],['เก้าอี้','เกมมิ่งแดง'],['โซฟา','หนังดำ หันเข้าทีวี 55"'],['ไฟ','RGB แดง/ฟ้า + แท่ง LED'],['ของเด่น','ตู้โชว์กระจก · ลำโพงตั้งพื้น']]},
   japandi:   {name:'Japandi Calm', wall:0xefe9df, floor:'plankLight', ceil:'white', accent:'slats', led:[0xffe2b0,0xffe2b0], pl:[0xffe0b0,0xffe8c8],
               desk:0xc9a27a, ped:0xf3f1ec, legs:'ped', peg:0xd6b48c, sofa:0xe6dccb, sofaR:1, rug:0xd8cdb9, shelf:0xc9a27a, frame:0xc9a27a, chair:0x8d8f93, wallSide:'oak', lights:'lantern', monitors:2,
-              desc:'ไม้โอ๊คอ่อน ผนังระแนงไม้ โซฟาผ้าบูเคล่ โคมกระดาษ · สว่าง ใช้แสงธรรมชาติเต็มที่ · ฉากหลังสวยเวลาประชุมวิดีโอ'},
+              fm:0, decor:'art', pc:0xf3f1ec, ac:0xf4f4f2, curtain:0xe8dcc6, extra:'vase', coffee:'low', pillows:[0xb8a88f,0xf1ece2,0x8a7a62], throwC:0xcbbba0, metal:0xb08a5a,
+              desc:'ไม้โอ๊คอ่อน ผนังระแนงไม้ โซฟาผ้าบูเคล่ โคมกระดาษ · สว่าง ใช้แสงธรรมชาติเต็มที่ · ฉากหลังสวยเวลาประชุมวิดีโอ',
+              spec:[['พื้น','ไม้โอ๊คอ่อน'],['ผนัง','ขาวครีม + ระแนงไม้โอ๊ค'],['โต๊ะ','ไม้โอ๊ค ตู้ลิ้นชักขาว'],['เก้าอี้','เทาอ่อน'],['โซฟา','บูเคล่ครีม + หมอนโทนดิน'],['ไฟ','โคมกระดาษกลม'],['ของเด่น','แจกันเซรามิก (ไม่มีต้นไม้) · โต๊ะญี่ปุ่นเตี้ย']]},
+  nordic:    {name:'Nordic Navy', wall:0x2c3e55, floor:'plankWhite', ceil:'white', accent:'slats', accentC:0x24344a, slatC:0xeeeae2, led:[0xffd9a0,0xffd9a0], pl:[0xffe0b0,0xfff0d8],
+              desk:0xd8bf9a, ped:0xf1efe9, legs:'steel', peg:0xd8bf9a, sofa:0x9b5a2e, sofaR:.45, rug:0xe8e2d6, rug2:0x2c3e55, rugStyle:'stripe', shelf:0xd8bf9a, frame:0xf1efe9, fm:0, chair:0xc9a24a, wallSide:'bookcase', lights:'pendant', pendC:0xf1efe9, monitors:2,
+              pillows:[0xe9d8b4,0x2c3e55,0xc9a24a], throwC:0xd8cbb5, decor:'posters', decorC:[0x2c3e55,0xc9a24a,0xe9e1d0,0xb4532a], floorLamp:'tripod', extra:'guitar', extraC:0xb07a45, deskWall:'shelf', curtain:0xe9e4d8, mugC:0xc9a24a,
+              desc:'ผนังน้ำเงินกรมท่าตัดไม้โอ๊คขาว โซฟาหนังคอนยัค เก้าอี้มัสตาร์ด · สะอาดตา ดูแพง ไม่มืดเกินไป ใช้ได้ทั้งกลางวันและกลางคืน',
+              spec:[['พื้น','ไม้โอ๊คขาว (white oak) ลายตรง'],['ผนัง','น้ำเงินกรมท่า + ระแนงขาวเต็มผนังโรงรถ'],['โต๊ะ','ท็อปโอ๊คขาว ขาเหล็กดำ + ชั้นลอยเหนือโต๊ะ'],['เก้าอี้','ผ้าสีมัสตาร์ด'],['โซฟา','หนังคอนยัค + หมอนครีม/น้ำเงิน/มัสตาร์ด + ผ้าห่มนิต'],['ไฟ','โคมโดมขาว 2 จุด + โคมสามขา'],['ของเด่น','กีตาร์โปร่ง · โปสเตอร์มินิมอล 3 ภาพ · พรมลายทาง']]},
+  library:   {name:'Dark Academia', wall:0x1f3a2c, floor:'plankWalnut', ceil:'color', ceilC:0x1a2e23, accent:'wainscot', accentC:0x4a2e1c, led:[0xffcf8a,0xffcf8a], pl:[0xffc070,0xffd9a0],
+              desk:0x4a2e1c, ped:0x3a2416, legs:'ped', peg:0x4a2e1c, sofa:0x5a2d18, sofaR:.4, sofaStyle:'chester', rug:0x7a1f24, rug2:0xc9a24a, rugStyle:'border', shelf:0x4a2e1c, frame:0x2a1a10, fm:0, chair:0x3a2014, wallSide:'bookcase', ladder:true, lights:'pendant', pendC:0xb8913a, metal:0xb8913a, monitors:2,
+              pillows:[0x7a1f24,0xc9a24a,0x1f3a2c], throwC:0x7a1f24, decor:'gallery', floorLamp:'arc', coffee:'ottoman', extra:'globe', deskWall:'shelf', curtain:0x5a1e22, mugC:0xe8e0cc,
+              bookC:[0x5a1e22,0x1f3a2c,0x2a1a10,0x8a6a2a,0xd8cfbf,0x1e2a3a],
+              desc:'ห้องสมุดส่วนตัวสไตล์อังกฤษ ผนังเขียวป่าเข้ม ไม้วอลนัท ทองเหลือง · ตู้หนังสือจรดเพดานพร้อมบันได · เหมาะกับคนอ่านหนังสือเยอะ',
+              spec:[['พื้น','ไม้วอลนัท'],['ผนัง','เขียวป่าเข้ม + บัวผนังไม้ครึ่งล่าง + คิ้วทองเหลือง'],['โต๊ะ','วอลนัททึบ ตู้ลิ้นชัก 2 ฝั่ง + ชั้นลอย'],['เก้าอี้','หนังน้ำตาลเข้ม'],['โซฟา','เชสเตอร์ฟิลด์หนังน้ำตาลแดง ดึงกระดุม'],['ไฟ','โคมโดมทองเหลือง + โคมโค้ง'],['ของเด่น','บันไดพาดตู้หนังสือ · ลูกโลกตั้งพื้น · กรอบภาพทอง · พรมขอบทอง']]},
+  cyber:     {name:'Cyber Neon', wall:0x0b0a12, floor:'epoxy', floorC:0x2a1846, ceil:'black', accent:'neon', accentC:0x0b0a12, led:[0xff2bd6,0x00e5ff], pl:[0xff2bd6,0x00d0ff],
+              desk:0x0e0e12, ped:0x0e0e12, legs:'steel', peg:0x0e0e12, sofa:0x3a2560, sofaR:.9, sofaStyle:'modular', rug:0x14101e, rugStyle:'round', shelf:0x0e0e12, frame:0x0e0e12, chair:0x111111, chairStyle:'gaming', chairAcc:0x00e5ff, wallSide:'cubby', cubbyGlow:true, fill:['books','box','deco','deco'], lights:'tube', monitors:2,
+              pillows:[0xff2bd6,0x00e5ff,0x111111], decor:'neon', decorText:'GAME ON', floorLamp:'tube', coffee:'glass', extra:'arcade', deskWall:'peg', curtain:0x1a1428, screen:0x6a2a9e, mugC:0xff2bd6, boxC:[0xff2bd6,0x00e5ff,0x222222],
+              desc:'อยู่อีกโลกจริงๆ ดำล้วน พื้นอีพ็อกซี่เงาม่วง นีออนชมพู/ฟ้า · ป้ายนีออน GAME ON · ตู้เกมอาร์เคดตรงมุมหน้าต่าง',
+              spec:[['พื้น','อีพ็อกซี่ม่วงดำ เงาสะท้อน'],['ผนัง','ดำ + เส้นนีออนชมพู/ฟ้า'],['โต๊ะ','ดำ ขาเหล็ก + เพ็กบอร์ด'],['เก้าอี้','เกมมิ่งดำตัดฟ้า'],['โซฟา','โมดูลาร์กำมะหยี่ม่วง + หมอนนีออน'],['ไฟ','หลอดนีออนเพดาน + แท่ง LED'],['ของเด่น','ตู้เกมอาร์เคด · ชั้นช่องเรืองแสง · ป้ายนีออน · พรมกลม']]},
+  midcentury:{name:'Mid-Century Groove', wall:0xe8dcc4, floor:'plankWalnut', ceil:'white', accent:'paint', accentC:0x2f6b6a, led:[0xffd29a,0xffd29a], pl:[0xffd29a,0xffe6c0],
+              desk:0x6b3f22, ped:0x6b3f22, legs:'steel', peg:0x6b3f22, sofa:0xc8642a, sofaR:.9, rug:0xe2cfa4, rug2:0xc8642a, rugStyle:'stripe', shelf:0x6b3f22, frame:0x5a341c, fm:0, chair:0xd9a640, wallSide:'cubby', fill:['books','records','books','deco','box'], lights:'globe', metal:0xb8913a, monitors:2,
+              pillows:[0x2f6b6a,0xe8dcc4,0xd9a640], throwC:0xe8dcc4, decor:'posters', decorC:[0xc8642a,0x2f6b6a,0xd9a640,0xe8dcc4], floorLamp:'arc', extra:'record', deskWall:'shelf', curtain:0xd9a640, boxC:[0xc8642a,0x2f6b6a,0xd9a640],
+              desc:'ย้อนยุค 60s อบอุ่น ไม้วอลนัท ส้มอิฐ เขียวหัวเป็ด มัสตาร์ด · ฟังแผ่นเสียงบนโซฟา · โคมลูกบอลแก้ว',
+              spec:[['พื้น','ไม้วอลนัท'],['ผนัง','ครีม + ผนังเด่นเขียวหัวเป็ด'],['โต๊ะ','วอลนัท ขาเหล็ก + ชั้นลอย'],['เก้าอี้','ผ้ามัสตาร์ด'],['โซฟา','ส้มอิฐ + หมอนเขียว/ครีม/มัสตาร์ด'],['ไฟ','โคมลูกบอลแก้วทองเหลือง + โคมโค้ง'],['ของเด่น','ตู้เครื่องเล่นแผ่นเสียง · ชั้นช่องใส่แผ่นเสียง · โปสเตอร์กราฟิก']]},
+  mono:      {name:'Monochrome Pro', wall:0xeeeeec, floor:'micro', floorC:0xbdbbb6, ceil:'white', accent:'paint', accentC:0x1c1c1e, led:[0xeef4ff,0xeef4ff], pl:[0xf0f4ff,0xffffff],
+              desk:0x1c1c1e, ped:0x1c1c1e, legs:'steel', peg:0x1c1c1e, sofa:0x8d8d8d, sofaR:1, sofaStyle:'modular', rug:0x2b2b2b, rugStyle:'plain', shelf:0x1c1c1e, frame:0x1c1c1e, chair:0x1c1c1e, chairStyle:'mesh', chairAcc:0x1c1c1e, wallSide:'bookcase', lights:'track', monitors:2,
+              pillows:[0x1c1c1e,0xf2f2f2,0x555555], throwC:0xd8d8d6, decor:'clock', floorLamp:'arc', extra:'speaker', pc:0xf3f3f3, ac:0xf4f4f2, curtain:0xd6d6d4, deskWall:'shelf', screen:0x3a4a5a, mugC:0x1c1c1e,
+              bookC:[0x1c1c1e,0xf2f2f2,0x777777,0xbbbbbb,0x333333],
+              desc:'ขาว-ดำ-เทา มินิมอลแบบออฟฟิศดีไซน์ · ไม่มีอะไรรกตา โฟกัสงานได้ดีที่สุด · ผนังดำด้านหลังโต๊ะ + นาฬิกาใหญ่',
+              spec:[['พื้น','ปูนเปลือย (micro-cement) เทาอ่อน'],['ผนัง','ขาว + ผนังดำด้านหลังโต๊ะ'],['โต๊ะ','ดำ ขาเหล็ก + ชั้นลอยดำ'],['เก้าอี้','เออร์โกโนมิกพนักตาข่ายดำ'],['โซฟา','โมดูลาร์ผ้าเทา'],['ไฟ','รางไฟดำ + โคมโค้งดำ'],['ของเด่น','นาฬิกาใหญ่ · ลำโพงตั้งพื้น · เคส PC ขาว · หนังสือคุมโทนขาวดำ']]},
+  terracotta:{name:'Desert Terracotta', wall:0xc9805a, floor:'terrazzo', floorC:0xefe4d2, ceil:'color', ceilC:0xf3e8d8, accent:'paint', accentC:0xa4573a, led:[0xffd2a0,0xffd2a0], pl:[0xffd2a0,0xffe4c0],
+              desk:0xd9c3a3, ped:0xe9dcc7, legs:'ped', peg:0xd9c3a3, sofa:0xefe6d6, sofaR:1, sofaStyle:'modular', rug:0xe3d4bb, rugStyle:'round', shelf:0xd9c3a3, frame:0xe8d5bd, fm:0, chair:0x9a6a3e, wallSide:'arch', lights:'pendant', pendC:0xc9a77a, metal:0x8a6a4a, monitors:2,
+              pillows:[0xa4573a,0xd9a066,0x6b7a4a], throwC:0xd9a066, decor:'sun', decorC:[0xa4573a,0xd9a066,0xefe6d6], floorLamp:'tripod', coffee:'block', extra:'blanket', deskWall:'shelf', curtain:0xefe6d6, mugC:0xa4573a,
+              desc:'โทนดินเผาอบอุ่นแบบเมดิเตอร์เรเนียน พื้นเทอราซโซ ตู้ซุ้มโค้ง · ผ่อนคลาย เหมาะทั้งทำงานและนั่งเล่น',
+              spec:[['พื้น','เทอราซโซโทนครีม เกล็ดหินสีดิน'],['ผนัง','ส้มดินเผา + ผนังเด่นสีอิฐเข้ม'],['โต๊ะ','ไม้โอ๊คอ่อน ตู้ลิ้นชักครีม'],['เก้าอี้','หนังสีคาราเมล'],['โซฟา','โมดูลาร์บูเคล่ครีม + หมอนดินเผา/มัสตาร์ด/เขียวมะกอก'],['ไฟ','โคมโดมสีหวาย + โคมสามขา'],['ของเด่น','ตู้ซุ้มโค้ง 3 ช่อง · ภาพพระอาทิตย์ · ราวพาดผ้า · โต๊ะหินทราเวอร์ทีน']]},
+  garage:    {name:'Racing Garage', wall:0x6e7378, floor:'checker', ceil:'concrete', accent:'metal', accentC:0xc4161c, led:[0xf4f8ff,0xc4161c], pl:[0xf4f8ff,0xffffff],
+              desk:0x1d1d1d, ped:0x1d1d1d, legs:'steel', peg:0x3a3d40, sofa:0x1a1a1a, sofaR:.4, rug:0x1a1a1a, rugStyle:'none', shelf:0x3a3d40, frame:0x2a2c2e, chair:0x1a1a1a, chairStyle:'gaming', chairAcc:0xc4161c, wallSide:'garage', lights:'tube', metal:0x9a9da0, monitors:2,
+              pillows:[0xc4161c,0x1a1a1a,0xc4161c], decor:'flag', coffee:'tire', extra:'toolchest', deskWall:'peg', curtain:0x2b2b2b, mugC:0xc4161c,
+              desc:'อู่แต่งรถ/ห้องแข่ง พื้นตารางหมากรุก ตู้เครื่องมือแดง แผงเครื่องมือ · ทนทาน เลอะได้ ใช้ซ่อมของหรือประกอบคอมได้',
+              spec:[['พื้น','กระเบื้องตารางหมากรุกขาวดำ'],['ผนัง','เทาเหล็ก + แผ่นเหล็กลายกันลื่นครึ่งล่าง + คาดแดง'],['โต๊ะ','ท็อปดำ ขาเหล็ก + เพ็กบอร์ดแขวนของ'],['เก้าอี้','เบาะแข่งดำตัดแดง'],['โซฟา','หนังดำ + หมอนแดง'],['ไฟ','หลอดไฟยาวแบบอู่ซ่อมรถ'],['ของเด่น','ตู้เครื่องมือแดง · ผนังเครื่องมือ · โต๊ะยางรถ · ธงหมากรุก · หมวกกันน็อก']]},
+  tokyo:     {name:'Tokyo Night', wall:0x1c1a19, floor:'plankWalnut', floorC:0x9a8a80, ceil:'wood', accent:'slats', accentC:0x15110e, slatC:0x3a2617, led:[0xff7a40,0xffb070], pl:[0xff8a50,0xffb070],
+              desk:0x3a2617, ped:0x1c1a19, legs:'ped', peg:0x3a2617, sofa:0x2a3346, sofaR:.95, sofaStyle:'modular', rug:0xc8b98a, rug2:0x1c1a19, rugStyle:'border', shelf:0x3a2617, frame:0x2a1d15, fm:0, chair:0x1c1c1c, chairStyle:'mesh', chairAcc:0x2a1d15, wallSide:'bookcase', lights:'lantern', lanternC:0xffa060, monitors:2,
+              pillows:[0xc23b22,0xe8dcc4,0x2a3346], throwC:0xe8dcc4, decor:'shoji', coffee:'low', extra:'andon', deskWall:'shelf', curtain:0x2a3346, mugC:0xe8dcc4,
+              desc:'ญี่ปุ่นโทนกลางคืน ไม้วอลนัทเข้ม ระแนงไม้ โคมกระดาษส้ม · เงียบ สงบ เหมือนบาร์ลับในโตเกียว',
+              spec:[['พื้น','วอลนัทเข้ม'],['ผนัง','ถ่านดำ + ระแนงวอลนัท · เพดานไม้'],['โต๊ะ','วอลนัทเข้ม ตู้ลิ้นชักดำ'],['เก้าอี้','พนักตาข่ายดำ'],['โซฟา','โมดูลาร์เตี้ยสีคราม + หมอนแดงชาด'],['ไฟ','โคมกระดาษส้ม + โคมอันดงตั้งพื้น'],['ของเด่น','ภาพโชจิเรืองแสง · พรมลายเสื่อตาตามิ · โต๊ะญี่ปุ่นเตี้ย']]},
+  space:     {name:'Space Station', wall:0xe9edf1, floor:'epoxy', floorC:0xd5dbe2, ceil:'white', accent:'panel', led:[0x3da9ff,0x3da9ff], pl:[0xcfe6ff,0xeef6ff],
+              desk:0xf2f4f6, ped:0xe0e4e8, legs:'ped', peg:0xe0e4e8, sofa:0x2f4c7a, sofaR:.9, sofaStyle:'modular', rug:0xc9d2dc, rugStyle:'round', shelf:0xf2f4f6, frame:0xf2f4f6, fm:.1, chair:0xf2f4f6, chairStyle:'gaming', chairAcc:0x3da9ff, wallSide:'cubby', cubbyGlow:true, fill:['box','books','deco'], lights:'panel', metal:0xc8d0d8, monitors:2,
+              pillows:[0xf2f4f6,0x3da9ff,0x9aa6b4], decor:'planet', floorLamp:'tube', coffee:'glass', extra:'moon', deskWall:'shelf', pc:0xf2f4f6, ac:0xf4f6f8, curtain:0xdfe5ec, screen:0x2a5a9e, boxC:[0xf2f4f6,0xc8d0d8,0x3da9ff],
+              bookC:[0xf2f4f6,0x2f4c7a,0x9aa6b4,0x3da9ff,0x222222],
+              desc:'ห้องในยานอวกาศ ขาวเงาทั้งห้อง ไฟฟ้าเย็น ผนังแบ่งแผง · เท่แบบล้ำอนาคต สว่าง ถ่ายรูปสวย',
+              spec:[['พื้น','อีพ็อกซี่เทาขาว เงา'],['ผนัง','ขาวแบ่งแผง + เส้นไฟฟ้า'],['โต๊ะ','ขาวเงา ตู้ลิ้นชักขาว'],['เก้าอี้','เกมมิ่งขาวตัดฟ้า'],['โซฟา','โมดูลาร์น้ำเงินคราม'],['ไฟ','แผงไฟเพดาน + แท่ง LED ฟ้า'],['ของเด่น','โคมพระจันทร์ · ภาพดาวเคราะห์ · ชั้นช่องเรืองแสงขาว']]},
+  studio:    {name:'Velvet Studio', wall:0x2a2422, floor:'plankWalnut', ceil:'color', ceilC:0x1e1a18, accent:'acoustic', accentC:0x6b1f2a, accent2:0x3a3432, led:[0xffb347,0xff6a3d], pl:[0xffb060,0xff8a50],
+              desk:0x4a2e1c, ped:0x1e1a18, legs:'steel', peg:0x4a2e1c, sofa:0x6b1f2a, sofaR:.8, sofaStyle:'chester', rug:0x7a2a22, rug2:0x1e2a44, rugStyle:'border', shelf:0x4a2e1c, frame:0x2a1a10, fm:0, chair:0x8a4a22, wallSide:'cubby', fill:['records','records','books','box'], lights:'edison', metal:0xb8913a, monitors:2,
+              pillows:[0xd9a640,0x1e1a18,0xd9a640], throwC:0x1e2a44, decor:'records', floorLamp:'arc', coffee:'crate', extra:'synth', deskWall:'shelf', spk:'big', curtain:0x6b1f2a, mugC:0xd9a640, boxC:[0x6b1f2a,0x3a3432,0xd9a640],
+              desc:'สตูดิโอดนตรี/พอดแคสต์ ผนังซับเสียงสีไวน์ ไม้วอลนัท โซฟากำมะหยี่ · เก็บเสียงดี เหมาะประชุม อัดเสียง และฟังเพลง',
+              spec:[['พื้น','วอลนัท'],['ผนัง','น้ำตาลเข้ม + แผ่นซับเสียงสีไวน์/เทาสลับ'],['โต๊ะ','วอลนัท ขาเหล็ก + ลำโพงมอนิเตอร์สตูดิโอ'],['เก้าอี้','หนังคอนยัค'],['โซฟา','เชสเตอร์ฟิลด์กำมะหยี่ไวน์'],['ไฟ','หลอดเอดิสัน + โคมโค้งทองเหลือง'],['ของเด่น','คีย์บอร์ดซินธ์ · แผ่นเสียงติดผนัง · ลังแผ่นเสียง · พรมเปอร์เซีย']]},
 };
 let officeTex = null;   // สร้างครั้งเดียว
 function getOfficeTex(){
@@ -515,34 +579,56 @@ function getOfficeTex(){
       g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(x, r*128, 2, 128); x += w; }
     g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, r*128, s, 2); } };
   const plankDark = canvasTex(512, plankFn(28,18,15,22)), plankLight = canvasTex(512, plankFn(34,32,62,72));
+  const plankWalnut = canvasTex(512, plankFn(24,38,20,30)), plankWhite = canvasTex(512, plankFn(38,20,74,82));
   const concrete = canvasTex(512, (g,s)=>{ g.fillStyle = '#8c8984'; g.fillRect(0,0,s,s);
     for(let i=0;i<260;i++){ const r = 10+rnd()*60, gr = g.createRadialGradient(0,0,1,0,0,r); const c = rnd()<.5 ? '255,255,255' : '0,0,0'; gr.addColorStop(0,`rgba(${c},${.04+rnd()*.06})`); gr.addColorStop(1,`rgba(${c},0)`);
       g.save(); g.translate(rnd()*s, rnd()*s); g.fillStyle = gr; g.fillRect(-r,-r,2*r,2*r); g.restore(); }
     for(let i=0;i<2500;i++){ g.fillStyle = `rgba(0,0,0,${rnd()*.15})`; g.fillRect(rnd()*s, rnd()*s, 1.5, 1.5); } });
+  const noise = canvasTex(256, (g,s)=>{ g.fillStyle = '#f2f2f2'; g.fillRect(0,0,s,s);
+    for(let i=0;i<120;i++){ const r = 8+rnd()*40, gr = g.createRadialGradient(0,0,1,0,0,r); const c = rnd()<.5 ? '255,255,255' : '0,0,0'; gr.addColorStop(0,`rgba(${c},${.03+rnd()*.04})`); gr.addColorStop(1,`rgba(${c},0)`);
+      g.save(); g.translate(rnd()*s, rnd()*s); g.fillStyle = gr; g.fillRect(-r,-r,2*r,2*r); g.restore(); }
+    for(let i=0;i<1500;i++){ g.fillStyle = `rgba(0,0,0,${rnd()*.06})`; g.fillRect(rnd()*s, rnd()*s, 1, 1); } });
   const brick = canvasTex(256, (g,s)=>{ g.fillStyle = '#121212'; g.fillRect(0,0,s,s);
     for(let r=0;r<8;r++) for(let c=-1;c<4;c++){ const x = c*64+(r%2?32:0)+3, y = r*32+3; g.fillStyle = `hsl(220,4%,${13+rnd()*7}%)`; g.fillRect(x, y, 58, 26);
       for(let k=0;k<6;k++){ g.fillStyle = `rgba(255,255,255,${rnd()*.06})`; g.fillRect(x+rnd()*50, y+rnd()*20, 6, 3); } } });
   const tile = canvasTex(256, (g,s)=>{ for(let r=0;r<4;r++) for(let c=0;c<4;c++){ g.fillStyle = `hsl(225,6%,${11+rnd()*3}%)`; g.fillRect(c*64, r*64, 64, 64); }
     g.strokeStyle = '#050506'; g.lineWidth = 2; for(let i=0;i<=4;i++){ g.beginPath(); g.moveTo(i*64,0); g.lineTo(i*64,s); g.stroke(); g.beginPath(); g.moveTo(0,i*64); g.lineTo(s,i*64); g.stroke(); } });
+  const checker = canvasTex(256, (g,s)=>{ for(let r=0;r<4;r++) for(let c=0;c<4;c++){ g.fillStyle = (r+c)%2 ? '#161616' : '#ecebe6'; g.fillRect(c*64, r*64, 64, 64); }
+    g.strokeStyle = 'rgba(0,0,0,.3)'; g.lineWidth = 1.5; for(let i=0;i<=4;i++){ g.beginPath(); g.moveTo(i*64,0); g.lineTo(i*64,s); g.stroke(); g.beginPath(); g.moveTo(0,i*64); g.lineTo(s,i*64); g.stroke(); } });
+  const terrazzo = canvasTex(512, (g,s)=>{ g.fillStyle = '#ffffff'; g.fillRect(0,0,s,s); const cs = ['#c9805a','#a4573a','#6b6157','#d9c3a3','#8a8a80','#e0c8a8','#4a4a44'];
+    for(let i=0;i<1100;i++){ g.fillStyle = cs[Math.floor(rnd()*cs.length)]; g.globalAlpha = .5+rnd()*.5; const x = rnd()*s, yy = rnd()*s, r = 1.5+rnd()*(rnd()<.85 ? 4 : 9);
+      g.beginPath(); g.moveTo(x+r, yy); for(let k=1;k<6;k++){ const a = k/6*6.283, rr = r*(.6+rnd()*.6); g.lineTo(x+Math.cos(a)*rr, yy+Math.sin(a)*rr); } g.fill(); } g.globalAlpha = 1; });
+  const plate = canvasTex(128, (g,s)=>{ g.fillStyle = '#8f9295'; g.fillRect(0,0,s,s);
+    for(let r=0;r<8;r++) for(let c=0;c<9;c++){ g.save(); g.translate(c*16+(r%2?8:0), r*16+8); g.rotate((r+c)%2 ? .7 : -.7); g.fillStyle = '#dcdfe2'; g.fillRect(-6,-1.6,12,3.2); g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(-6,1.6,12,1.2); g.restore(); } });
   const stars = canvasTex(1024, (g,s)=>{ g.fillStyle = '#0b0f24'; g.fillRect(0,0,s,s);
     const neb = g.createRadialGradient(s*.62,s*.45,10,s*.62,s*.45,s*.45); neb.addColorStop(0,'rgba(140,60,200,.35)'); neb.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle = neb; g.fillRect(0,0,s,s);
     for(let i=0;i<900;i++){ const r = rnd()<.92 ? .8+rnd()*1.2 : 2+rnd()*2.5; g.fillStyle = rnd()<.25 ? '#8dffb0' : (rnd()<.5 ? '#ffffff' : '#b9c8ff'); g.globalAlpha = .5+rnd()*.5; g.beginPath(); g.arc(rnd()*s, rnd()*s, r, 0, 7); g.fill(); }
     g.globalAlpha = 1; });
-  return officeTex = {plankDark, plankLight, concrete, brick, tile, stars};
+  return officeTex = {plankDark, plankLight, plankWalnut, plankWhite, concrete, noise, brick, tile, checker, terrazzo, plate, stars};
 }
+function cTex(w, h, draw){ const cv = document.createElement('canvas'); cv.width = w; cv.height = h; draw(cv.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; }
 function office3(ok){
-  const th = THEMES[officeTheme], T = getOfficeTex();
-  const g = gOpt, y = FL, top = F2 - .02, sm = (o)=> new THREE.MeshStandardMaterial(o);
+  const th = {...TH_DEF, ...THEMES[officeTheme]}, T = getOfficeTex();
+  const g = gOpt, y = FL, top = F2 - .02, H = top - y, sm = (o)=> new THREE.MeshStandardMaterial(o);
   const rep = (tex, rx, ry)=>{ const t = tex.clone(); t.repeat.set(rx, ry); t.needsUpdate = true; return t; };
   const glow = (c, i=1.6)=> sm({color:c, emissive:c, emissiveIntensity:i});
-  const wallM = sm({color:th.wall, roughness:.95}), blk = sm({color:0x131416, roughness:.45, metalness:.3}), frameM = sm({color:th.frame, roughness:.5, metalness: th.wallSide==='oak' ? 0 : .3});
+  const wallM = sm({color:th.wall, roughness:.95}), blk = sm({color:0x131416, roughness:.45, metalness:.3}), frameM = sm({color:th.frame, roughness:.5, metalness:th.fm});
   const deskTop = sm({color:th.desk, roughness:.5}), ped = sm({color:th.ped, roughness:.5}), sofaM = sm({color:th.sofa, roughness:th.sofaR}), shelfM = sm({color:th.shelf, roughness:.6}), pegM = sm({color:th.peg, roughness:.8});
-  const led1 = glow(th.led[0]), led2 = glow(th.led[1]), ledW = glow(0xffc98a, 1.2), screen = glow(0x2a6f9e, .7);
+  const metalM = sm({color:th.metal, roughness:.35, metalness:.75}), chrome = sm({color:0xdadcde, roughness:.2, metalness:.9});
+  const led1 = glow(th.led[0]), led2 = glow(th.led[1]), ledW = glow(0xffc98a, 1.2), screen = glow(th.screen, .7);
   const RB = (xa,xb,za,zb,ya,yb,mat,r=.05)=>{ const m = new THREE.Mesh(new RoundedBoxGeometry(xb-xa,yb-ya,zb-za,3,Math.min(r,(xb-xa)/2-.001,(yb-ya)/2-.001,(zb-za)/2-.001)), mat); m.position.set((xa+xb)/2,(ya+yb)/2,(za+zb)/2); m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+  const box = (w,h,d)=> new THREE.BoxGeometry(w,h,d), cyl = (r1,r2,h,s=16,open=false)=> new THREE.CylinderGeometry(r1,r2,h,s,1,open), sph = (r,a=16,b=12)=> new THREE.SphereGeometry(r,a,b);
+  const rbox = (w,h,d,r=.04)=> new RoundedBoxGeometry(w,h,d,3,Math.min(r,w/2-.001,h/2-.001,d/2-.001));
+  const part = (p, geo, mat, x,yy,z, rx=0,ry=0,rz=0)=>{ const o = new THREE.Mesh(geo, mat); o.position.set(x,yy,z); o.rotation.set(rx,ry,rz); o.castShadow = true; o.receiveShadow = true; p.add(o); return o; };
+  const grp = (x,yy,z,ry=0)=>{ const o = new THREE.Group(); o.position.set(x,yy,z); o.rotation.y = ry; g.add(o); return o; };
+  const pick = arr => arr[Math.floor(rnd()*arr.length)];
   const deskMode2 = deskMode;
+  seed = 31;
   // ---- พื้น ----
-  { const f = {plankDark:[T.plankDark,2.6,1.3], plankLight:[T.plankLight,2.6,1.3], concrete:[T.concrete,1.6,.8], tile:[T.tile,2.2,1.1]}[th.floor];
-    B(g, 0,5.3, 5.13,7.8, 0,y, sm({map:rep(f[0],f[1],f[2]), roughness: th.floor==='concrete' ? .25 : .55, metalness: th.floor==='concrete' ? .1 : 0})); }
+  { const F = {plankDark:[T.plankDark,2.6,1.3,.55], plankLight:[T.plankLight,2.6,1.3,.55], plankWalnut:[T.plankWalnut,2.6,1.3,.5], plankWhite:[T.plankWhite,2.6,1.3,.6],
+      concrete:[T.concrete,1.6,.8,.25], tile:[T.tile,2.2,1.1,.55], checker:[T.checker,5.3/1.8,2.67/1.8,.3], terrazzo:[T.terrazzo,4,2,.35], epoxy:[T.noise,2,1,.1], micro:[T.noise,2,1,.5]}[th.floor];
+    B(g, 0,5.3, 5.13,7.8, 0,y, sm({map:rep(F[0],F[1],F[2]), color:th.floorC, roughness:F[3], metalness: (th.floor==='concrete'||th.floor==='epoxy') ? .1 : 0})); }
   // ---- ผนังซ้าย (หน้าต่าง/ทึบ) + หลังคาส่วนต่อเติม ----
   wall(g,'z',0, 5.13,7.8, y,F2, .15, M.wall, ok ? [{s:5.5,e:7.45,sill:.8,head:2.45}] : []);
   B(g, -.25,1.95, 5.05,7.95, F2,F2+.2, sm({color:0xffffff, transparent:true, opacity:.3, depthWrite:false}), false);
@@ -550,85 +636,225 @@ function office3(ok){
   // ---- ผนังด้านในทุกด้านตามธีม (ด้านนอกบ้านยังขาว) ----
   B(g, .08,4.92, 7.70,7.718, y,top, wallM, false);
   const lw = (za,zb,ya,yb)=> B(g, .075,.09, za,zb, y+ya,y+yb, wallM, false);
-  if(ok){ lw(5.21,5.5,0,top-y); lw(7.45,7.7,0,top-y); lw(5.5,7.45,0,.8); lw(5.5,7.45,2.45,top-y); } else lw(5.21,7.7,0,top-y);
+  if(ok){ lw(5.21,5.5,0,H); lw(7.45,7.7,0,H); lw(5.5,7.45,0,.8); lw(5.5,7.45,2.45,H); } else lw(5.21,7.7,0,H);
   const bw = (xa,xb,ya,yb)=> B(g, xa,xb, 5.205,5.22, y+ya,y+yb, wallM, false);
-  bw(.08,.93,0,top-y); bw(.93,4.4,2.3,top-y); bw(.93,2.05,0,.2); bw(4.4,4.92,0,top-y);
+  bw(.08,.93,0,H); bw(.93,4.4,2.3,H); bw(.93,2.05,0,.2); bw(4.4,4.92,0,H);
   for(const [xa,xb] of [[2.0,2.05],[4.4,4.45]]) B(g, xa,xb, 5.2,5.24, y,y+2.35, frameM, false); B(g, 2.0,4.45, 5.2,5.24, y+2.3,y+2.35, frameM, false);
+  B(g, .09,4.92, 5.22,5.24, y,y+.08, frameM, false); B(g, .09,4.92, 7.68,7.70, y,y+.08, frameM, false);   // บัวเชิงผนัง
   // ---- ผนังเด่นฝั่งโรงรถ ----
-  if(th.accent==='brick') B(g, .08,4.92, 7.69,7.70, y,top, sm({map:rep(T.brick, 4.84/.9, (top-y)/.55), roughness:.95}), false);
-  if(th.accent==='slats'){ B(g, .08,4.92, 7.69,7.70, y,top, sm({color:0x8a6a4a}), false); for(let x=.1; x<4.9; x+=.065) B(g, x,x+.04, 7.655,7.69, y,top, shelfM, false); }
+  const AW = (xa,xb,ya,yb,mat,z0=7.69,z1=7.70)=> B(g, xa,xb, z0,z1, y+ya,y+yb, mat, false);
+  if(th.accent==='brick') AW(.08,4.92,0,H, sm({map:rep(T.brick, 4.84/.9, H/.55), roughness:.95}));
+  if(th.accent==='paint') AW(.08,4.92,0,H, sm({color:th.accentC, roughness:.95}));
+  if(th.accent==='slats'){ AW(.08,4.92,0,H, sm({color:th.accentC})); const sM = sm({color:th.slatC ?? th.shelf, roughness:.7}); for(let x=.1; x<4.9; x+=.065) B(g, x,x+.04, 7.655,7.69, y,top, sM, false); }
   if(th.accent==='hex'){ const panel = sm({color:0x1c1d22, roughness:1}); seed = 99;
     for(let r=0; r<9; r++) for(let c=0; c<18; c++){ const x = .25+c*.275+(r%2?.1375:0), yy = y+1.0+r*.24; if(x>4.8||yy>top-.15) continue;
       const lit = rnd()<.18, h = new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,.04,6), lit ? glow(rnd()<.5?th.led[0]:th.led[1], 1.1) : panel); h.rotation.x = Math.PI/2; h.rotation.y = Math.PI/6; h.position.set(x, yy, 7.67); g.add(h); } }
+  if(th.accent==='neon'){ AW(.08,4.92,0,H, sm({color:th.accentC, roughness:.9}));
+    B(g, .3,4.6, 7.665,7.69, top-.3,top-.27, led1, false); B(g, .1,4.9, 7.665,7.69, y+.1,y+.13, led2, false);
+    for(const x of [.22,4.72]) B(g, x,x+.03, 7.665,7.69, y+.3,top-.45, led2, false);
+    for(let k=0;k<4;k++){ const x = .5+k*.12; B(g, x,x+.02, 7.665,7.69, y+2.1-k*.12,y+2.45, led1, false); } }
+  if(th.accent==='acoustic'){ const a1 = sm({color:th.accentC, roughness:1}), a2 = sm({color:th.accent2, roughness:1});
+    for(let r=0;r<3;r++) for(let c=0;c<8;c++){ const x = .22+c*.58, yy = .95+r*.62; if(yy+.56>H) continue; RB(x,x+.54, 7.645,7.69, y+yy,y+yy+.56, (r+c)%2 ? a1 : a2, .025); } }
+  if(th.accent==='wainscot'){ const wm = sm({color:th.accentC, roughness:.6}); AW(.08,4.92,0,1.0,wm,7.68,7.69);
+    for(let x=.2; x<4.75; x+=.6) B(g, x,x+.5, 7.665,7.68, y+.15,y+.85, wm, false);
+    B(g, .08,4.92, 7.65,7.69, y+.98,y+1.04, wm, false); B(g, .08,4.92, 7.665,7.69, y+2.3,y+2.33, metalM, false);
+    B(g, .09,.105, 5.21,7.7, y,y+1.0, wm, false); B(g, .09,.12, 5.21,7.7, y+.98,y+1.04, wm, false); }   // ผนังซ้ายด้วย
+  if(th.accent==='metal'){ AW(.08,4.92,0,1.0, sm({map:rep(T.plate,14,2.4), color:0xd0d3d6, roughness:.35, metalness:.8}), 7.675,7.69); AW(.08,4.92,1.0,1.12, sm({color:th.accentC, roughness:.5}), 7.675,7.69);
+    B(g, .09,.105, 5.21,7.7, y,y+1.0, sm({map:rep(T.plate,6,2.4), color:0xd0d3d6, roughness:.35, metalness:.8}), false); B(g, .09,.105, 5.21,7.7, y+1.0,y+1.12, sm({color:th.accentC}), false); }
+  if(th.accent==='panel'){ const sM = sm({color:0xaab4be}); for(let x=.68; x<4.9; x+=.6) AW(x,x+.012,0,H,sM,7.684,7.69); for(const hh of [1.1,2.2]) AW(.08,4.92,hh,hh+.012,sM,7.684,7.69);
+    AW(.08,4.92,.95,.98,led1,7.68,7.69); B(g, .09,.1, 5.25,7.68, y+.95,y+.98, led1, false); }
   // ---- เพดาน ----
-  { const cm = th.ceil==='white' ? sm({color:0xf6f3ee, roughness:1}) : th.ceil==='stars' ? sm({map:T.stars, emissiveMap:T.stars, emissive:0xffffff, emissiveIntensity:.9, roughness:1}) : th.ceil==='concrete' ? sm({map:rep(T.concrete,2,1), color:0x8a8a8a, roughness:1}) : sm({color:0x08090b, roughness:1});
+  { const cm = th.ceil==='white' ? sm({color:0xf6f3ee, roughness:1}) : th.ceil==='stars' ? sm({map:T.stars, emissiveMap:T.stars, emissive:0xffffff, emissiveIntensity:.9, roughness:1})
+      : th.ceil==='concrete' ? sm({map:rep(T.concrete,2,1), color:0x8a8a8a, roughness:1}) : th.ceil==='wood' ? sm({map:rep(T.plankWalnut,2.4,1.2), color:0x8a7060, roughness:.8})
+      : th.ceil==='color' ? sm({color:th.ceilC, roughness:1}) : sm({color:0x08090b, roughness:1});
     const c = new THREE.Mesh(new THREE.PlaneGeometry(4.84,2.5), cm); c.rotation.x = Math.PI/2; c.position.set(2.5, top-.008, 6.455); g.add(c); }
   // ---- ไฟซ่อนฝ้า + ไฟตามธีม ----
   B(g, .1,4.9, 7.6,7.64, top-.05,top-.02, led1, false); B(g, .1,4.9, 5.24,5.28, top-.05,top-.02, led2, false); B(g, .1,.14, 5.3,7.6, top-.05,top-.02, led2, false);
   { const p1 = new THREE.PointLight(th.pl[0], 4, 5); p1.position.set(1.4, top-.3, 7.2); g.add(p1); const p2 = new THREE.PointLight(th.pl[1], 3, 5); p2.position.set(3.8, top-.3, 5.6); g.add(p2); }
+  const deskLP = deskMode2==='wall' ? [1.3,7.15] : [.55,6.45];
   if(th.lights==='track'){ for(const [xa,xb,za,zb] of [[.7,4.3,5.9,5.93],[.7,4.3,7.0,7.03],[.7,.73,5.9,7.03],[4.27,4.3,5.9,7.03]]) B(g, xa,xb, za,zb, top-.04,top, blk, false);
     for(const [x,z] of [[1.0,7.0],[1.7,7.0],[3.2,7.0],[4.0,7.0],[1.4,5.9],[3.6,5.9]]){ const c = new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.14,12), blk); c.position.set(x, top-.12, z); g.add(c); } }
   if(th.lights==='edison'){ const pts = deskMode2==='wall' ? [[.75,7.25],[1.25,7.25],[1.75,7.25],[3.75,6.4]] : [[.45,5.95],[.45,6.45],[.45,6.95],[3.75,6.4]];
     for(const [x,z] of pts){ B(g, x-.004,x+.004, z-.004,z+.004, y+1.95,top, blk, false); const b = new THREE.Mesh(new THREE.SphereGeometry(.06,14,10), glow(0xffa040, 2)); b.scale.y = 1.4; b.position.set(x, y+1.88, z); g.add(b); } }
-  if(th.lights==='lantern'){ B(g, 3.75-.004,3.75+.004, 6.35-.004,6.35+.004, y+2.5,top, blk, false); const l = new THREE.Mesh(new THREE.SphereGeometry(.26,24,16), glow(0xfff1d8, .9)); l.position.set(3.75, y+2.3, 6.35); g.add(l); }
+  if(th.lights==='lantern'){ B(g, 3.75-.004,3.75+.004, 6.35-.004,6.35+.004, y+2.5,top, blk, false); const l = new THREE.Mesh(new THREE.SphereGeometry(.26,24,16), glow(th.lanternC, .9)); l.position.set(3.75, y+2.3, 6.35); g.add(l);
+    for(const yy of [-.18,0,.18]){ const rg = new THREE.Mesh(new THREE.TorusGeometry(Math.sqrt(.26*.26-yy*yy)+.003,.004,6,32), blk); rg.rotation.x = Math.PI/2; rg.position.set(3.75, y+2.3+yy, 6.35); g.add(rg); } }
+  if(th.lights==='pendant') for(const [x,z,r] of [[...deskLP,.2],[3.75,6.35,.28]]){ B(g, x-.004,x+.004, z-.004,z+.004, y+2.2+r,top, blk, false);
+    const sh = new THREE.Mesh(new THREE.SphereGeometry(r,28,12,0,Math.PI*2,0,Math.PI/2), sm({color:th.pendC, roughness:.35, metalness:.5, side:THREE.DoubleSide})); sh.position.set(x,y+2.2,z); g.add(sh);
+    const bl = new THREE.Mesh(sph(r*.28), glow(0xffe0a8,2.2)); bl.position.set(x,y+2.2+r*.15,z); g.add(bl); }
+  if(th.lights==='globe') for(const [x,z,n] of [[...deskLP,3],[3.75,6.35,5]]){ B(g, x-.006,x+.006, z-.006,z+.006, y+2.38,top, metalM, false); part(g, cyl(.05,.05,.03,16), metalM, x,y+2.38,z);
+    for(let k=0;k<n;k++){ const a = k/n*6.283, rr = n>3 ? .26 : .18, sx = x+Math.cos(a)*rr, sz = z+Math.sin(a)*rr, sy = y+2.3-(k%2)*.12;
+      part(g, cyl(.006,.006,rr,6), metalM, (x+sx)/2, y+2.37, (z+sz)/2, 0,-a,Math.PI/2); B(g, sx-.005,sx+.005, sz-.005,sz+.005, sy,y+2.37, metalM, false);
+      const b = new THREE.Mesh(sph(.09), glow(0xfff4e0,1.1)); b.position.set(sx,sy,sz); g.add(b); } }
+  if(th.lights==='tube') for(const [z,m] of [[6.0,led1],[6.9,led2]]){ B(g, .5,4.5, z-.025,z+.025, top-.14,top-.09, m, false); for(const x of [.6,4.4]) B(g, x-.003,x+.003, z-.003,z+.003, top-.09,top, blk, false); }
+  if(th.lights==='panel') for(const x of [1.0,2.5,4.0]) for(const z of [5.9,7.0]){ B(g, x-.27,x+.27, z-.27,z+.27, top-.014,top-.004, sm({color:0xc8d0d8}), false); B(g, x-.24,x+.24, z-.24,z+.24, top-.018,top-.012, glow(0xeef6ff,1.4), false); }
   // ---- โต๊ะ จอ เคส PC เก้าอี้ ----
-  const monitors = (cx, cz, face, n)=>{ const m = new THREE.Group(); m.position.set(cx, y+.76, cz); m.rotation.y = face; g.add(m);
+  const monitors = (cx, cz, face, n)=>{ const m = grp(cx, y+.765, cz, face);
       const add = (geo, mat, x,yy,z, ry=0)=>{ const o = new THREE.Mesh(geo, mat); o.position.set(x,yy,z); o.rotation.y = ry; o.castShadow = true; m.add(o); return o; };
       const slots = n===3 ? [[-.64,-.13,-.45],[0,0,0],[.64,-.13,.45]] : [[-.32,0,0],[.32,0,0]];
-      for(const [dx,dz,ry] of slots){ add(new THREE.BoxGeometry(.62,.37,.03), blk, dx,.42,dz,ry); const sc = add(new THREE.BoxGeometry(.58,.33,.005), screen, dx,.42,dz,ry); sc.translateZ(-.017); }
+      for(const [dx,dz,ry] of slots){ add(new THREE.BoxGeometry(.62,.37,.03), blk, dx,.42,dz,ry); const sc = add(new THREE.BoxGeometry(.58,.33,.005), screen, dx,.42,dz,ry); sc.translateZ(-.017);
+        const lb = add(new THREE.BoxGeometry(.32,.022,.05), blk, dx,.62,dz,ry); lb.translateZ(-.01); const lg = add(new THREE.BoxGeometry(.28,.004,.012), glow(0xfff2dc,1.5), dx,.607,dz,ry); lg.translateZ(-.03); }
       add(new THREE.BoxGeometry(.05,.4,.05), blk, 0,.2,.08); add(new THREE.BoxGeometry(.3,.02,.18), blk, 0,.01,.06);
       add(new THREE.BoxGeometry(.44,.02,.14), sm({color:0x2a2a2a}), 0,.01,-.3); add(new THREE.BoxGeometry(.9,.004,.4), sm({color:0x222326, roughness:1}), .1,.002,-.28);
-      if(n===2) for(const dx of [-.78,.78]) add(new THREE.BoxGeometry(.13,.2,.15), blk, dx,.1,-.02); };
-  const pcTower = (x,z,face)=>{ const t = new THREE.Group(); t.position.set(x, y+.76, z); t.rotation.y = face; g.add(t);
-      const b = new THREE.Mesh(new THREE.BoxGeometry(.22,.48,.45), officeTheme==='japandi' ? sm({color:0xf3f1ec}) : blk); b.position.y = .24; b.castShadow = true; t.add(b);
-      const f = new THREE.Mesh(new THREE.BoxGeometry(.006,.4,.38), glow(th.led[0], 1.2)); f.position.set(-.112,.24,0); t.add(f); };
-  const chair = (x,z,face)=>{ const c = new THREE.Group(); c.position.set(x,y,z); c.rotation.y = face; g.add(c); const cm = sm({color:th.chair, roughness:.6});
-      const rb = (w,h,d,px,py,pz,mat)=>{ const o = new THREE.Mesh(new RoundedBoxGeometry(w,h,d,3,.05), mat); o.position.set(px,py,pz); o.castShadow = true; c.add(o); return o; };
-      rb(.55,.1,.52, 0,.5,0, cm); rb(.52, officeTheme==='command' ? .95 : .7, .12, 0, officeTheme==='command' ? 1.05 : .95, .27, cm).rotation.x = .12; rb(.06,.25,.3, -.3,.65,0, blk); rb(.06,.25,.3, .3,.65,0, blk);
-      const pole = new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.42,10), blk); pole.position.y = .25; c.add(pole);
-      const base = new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,.03,5), blk); base.position.y = .05; c.add(base); };
+      for(let i=0;i<14;i++) add(new THREE.BoxGeometry(.024,.006,.024), glow(th.led[i%2], .5), -.19+i*.029,.022,-.33);
+      add(new THREE.BoxGeometry(.06,.025,.1), blk, .38,.012,-.3);
+      if(n===2){ for(const dx of [-.78,.78]){ if(th.spk==='big'){ add(new THREE.BoxGeometry(.19,.3,.22), sm({color:0x1a1a1a, roughness:.6}), dx,.15,-.02); const w = add(new THREE.CylinderGeometry(.07,.07,.01,24), sm({color:0xd9a640, roughness:.4, metalness:.5}), dx,.11,-.135); w.rotation.x = Math.PI/2; const tw = add(new THREE.CylinderGeometry(.025,.025,.01,16), blk, dx,.23,-.135); tw.rotation.x = Math.PI/2; }
+          else add(new THREE.BoxGeometry(.13,.2,.15), blk, dx,.1,-.02); } } };
+  const deskStuff = (cx, cz, face)=>{ const d = grp(cx, y+.765, cz, face), acc = sm({color:th.chairAcc, roughness:.5});
+      part(d, cyl(.038,.035,.1,18), sm({color:th.mugC, roughness:.35}), -.58,.05,-.3); part(d, new THREE.TorusGeometry(.025,.007,6,12,Math.PI), sm({color:th.mugC}), -.62,.05,-.3, 0,0,Math.PI/2);
+      part(d, box(.1,.012,.1), blk, -.88,.006,-.25); part(d, cyl(.008,.008,.3,8), blk, -.88,.16,-.25);
+      part(d, new THREE.TorusGeometry(.085,.016,8,20,Math.PI), acc, -.88,.26,-.25); for(const s of [-1,1]) part(d, cyl(.045,.045,.04,16), acc, -.88+s*.085,.24,-.25, 0,0,Math.PI/2);
+      if(th.monitors!==3){ part(d, cyl(.06,.07,.02,20), metalM, -.95,.01,.14); part(d, cyl(.009,.009,.42,8), metalM, -.95,.21,.11, -.15,0,0);
+        part(d, cyl(.009,.009,.3,8), metalM, -.95,.44,-.04, Math.PI/2+.25,0,0); part(d, new THREE.ConeGeometry(.06,.1,20,1,true), sm({color:th.metal, roughness:.35, metalness:.75, side:THREE.DoubleSide}), -.95,.37,-.2);
+        part(d, sph(.025), glow(0xfff0d0,2), -.95,.34,-.2); }
+      for(let k=0;k<3;k++) part(d, box(.2,.03,.26), sm({color:pick(th.bookC), roughness:.8}), .68,.015+k*.03,-.3, 0,(k-1)*.12,0); };
+  const pcTower = (x,z,face)=>{ const t = grp(x, y+.765, z, face);
+      part(t, box(.22,.48,.45), sm({color:th.pc, roughness:.45, metalness:.2}), 0,.24,0);
+      part(t, box(.006,.42,.39), sm({color:0x9fd6e8, transparent:true, opacity:.25, roughness:.05}), -.113,.24,0);
+      for(const zz of [-.12,0,.12]){ part(t, new THREE.TorusGeometry(.055,.008,8,24), glow(th.led[0], 1.4), -.1,.34,zz, 0,Math.PI/2,0); }
+      part(t, box(.006,.12,.3), glow(th.led[1], .9), -.1,.12,0); };
+  const chair = (x,z,face)=>{ const c = grp(x,y,z,face), cm = sm({color:th.chair, roughness:.6}), am = sm({color:th.chairAcc, roughness:.55});
+      const rb = (p,w,h,d,px,py,pz,mat,r=.05)=> part(p, rbox(w,h,d,r), mat, px,py,pz);
+      for(let k=0;k<5;k++){ const a = k/5*6.283; part(c, box(.035,.03,.3), blk, Math.sin(a)*.15,.07,Math.cos(a)*.15, 0,a,0); part(c, sph(.028,8,6), blk, Math.sin(a)*.29,.03,Math.cos(a)*.29); }
+      part(c, cyl(.03,.03,.38,10), chrome, 0,.27,0);
+      const back = new THREE.Group(); back.position.set(0,.56,.25); back.rotation.x = .13; c.add(back);
+      if(th.chairStyle==='gaming'){ rb(c,.56,.12,.54, 0,.5,0, cm); for(const s of [-1,1]) rb(c,.1,.09,.5, s*.25,.58,0, am);
+        rb(back,.54,.98,.13, 0,.5,0, cm,.06); for(const s of [-1,1]){ rb(back,.09,.62,.16, s*.25,.42,-.015, am,.04); part(back, box(.035,.75,.005), am, s*.13,.5,-.068); }
+        rb(back,.3,.13,.08, 0,.84,-.09, am,.035); rb(back,.26,.16,.06, 0,.22,-.08, am,.03);
+      } else if(th.chairStyle==='mesh'){ rb(c,.52,.08,.5, 0,.5,0, cm,.04);
+        for(const [w,h,px,py] of [[.5,.04,0,.08],[.5,.04,0,.76],[.04,.7,-.23,.42],[.04,.7,.23,.42]]) rb(back,w,h,.04, px,py,0, am,.015);
+        part(back, box(.44,.66,.008), sm({color:th.chair, transparent:true, opacity:.88, roughness:.9, side:THREE.DoubleSide}), 0,.42,0);
+        rb(back,.36,.1,.05, 0,.28,-.03, cm,.02); rb(back,.3,.1,.05, 0,.9,0, am,.02); part(back, box(.03,.12,.03), am, 0,.82,0);
+      } else { rb(c,.55,.1,.52, 0,.5,0, cm); rb(back,.52,.7,.12, 0,.4,.02, cm); }
+      for(const s of [-1,1]){ rb(c,.05,.22,.05, s*.3,.66,.05, blk,.02); rb(c,.08,.04,.28, s*.3,.78,0, blk,.02); } };
   const support = (xa,xb,za,zb)=>{ if(th.legs==='steel'){ for(const x of [xa+.04, xb-.04]){ B(g, x-.02,x+.02, za+.05,za+.09, y,y+.72, blk); B(g, x-.02,x+.02, zb-.09,zb-.05, y,y+.72, blk); B(g, x-.02,x+.02, za+.05,zb-.05, y+.08,y+.12, blk); } return; }
-      B(g, xa,xb, za,zb, y,y+.72, ped); for(const h of [.18,.36,.54]) B(g, xa+.01,xb-.01, za-.004,za, y+h-.004,y+h+.004, M.trim, false); };
+      B(g, xa,xb, za,zb, y,y+.72, ped); for(const h of [.18,.36,.54]) B(g, xa+.01,xb-.01, za-.004,za, y+h-.004,y+h+.004, M.trim, false);
+      for(const h of [.1,.28,.46,.64]) B(g, (xa+xb)/2-.06,(xa+xb)/2+.06, za-.014,za-.004, y+h-.006,y+h+.006, chrome, false); };
+  const bookMat = ()=> sm({color:pick(th.bookC), roughness:.8});
+  const deskWall = (xa,xb,hs)=>{ if(th.deskWall==='peg'){ B(g, xa,xb, 7.64,7.668, y+hs[0]-.05,y+hs[1]+.25, pegM);
+        for(let k=0;k<6;k++){ const x = xa+.15+k*(xb-xa-.3)/6; B(g, x,x+.1, 7.58,7.64, y+hs[0]+.15+(k%2)*.3,y+hs[0]+.25+(k%2)*.3, k%3 ? sm({color:th.led[k%2], roughness:.6}) : blk, false); }
+        for(let k=0;k<4;k++){ const x = xa+.3+k*.35; B(g, x,x+.02, 7.61,7.64, y+hs[1]-.1,y+hs[1]+.1, chrome, false); } }
+    if(th.deskWall==='shelf') for(const hh of hs){ B(g, xa,xb, 7.45,7.69, y+hh,y+hh+.03, shelfM); B(g, xa+.05,xb-.05, 7.46,7.47, y+hh-.012,y+hh, ledW, false);
+      let x = xa+.06; while(x < xb-.2){ const k = rnd();
+        if(k<.45){ const n = 3+Math.floor(rnd()*5); for(let i=0;i<n && x<xb-.05;i++){ const w = .025+rnd()*.02; B(g, x,x+w, 7.5,7.66, y+hh+.03, y+hh+.03+.17+rnd()*.07, bookMat(), false); x += w+.003; } }
+        else if(k<.65){ part(g, rnd()<.5 ? sph(.05) : box(.07,.1,.07), sm({color:pick(th.boxC.concat(th.led)), roughness:.4}), x+.05, y+hh+.08, 7.57); x += .12; }
+        else if(k<.85){ B(g, x,x+.2, 7.62,7.65, y+hh+.03,y+hh+.28, frameM, false); B(g, x+.02,x+.18, 7.615,7.62, y+hh+.05,y+hh+.26, sm({color:pick(th.decorC), roughness:.8}), false); x += .24; }
+        else x += .1;
+        x += .05; } } };
   if(deskMode2==='wall'){
     const xa = .2, xb = 2.45, za = 6.98, zb = 7.69;
     RB(xa,xb, za,zb, y+.72,y+.765, deskTop, .015);
     if(th.legs==='steel') support(xa,xb, za,zb); else { support(xa+.02,xa+.42, za+.04,zb-.02); support(xb-.42,xb-.02, za+.04,zb-.02); }
     if(th.monitors===3){ RB(.08,.78, 5.95,za+.02, y+.72,y+.765, deskTop, .015); B(g, .1,.76, 6.0,6.4, y,y+.72, ped); }      // โต๊ะตัว L
     B(g, xa+.45,xb-.45, zb-.03,zb-.01, y+.66,y+.68, led1, false);
-    monitors(1.25, 7.42, 0, th.monitors); pcTower(2.2, 7.4, 0);
+    B(g, xa+.5,xb-.5, zb-.25,zb-.05, y+.6,y+.62, blk, false);   // รางเก็บสาย
+    monitors(1.25, 7.42, 0, th.monitors); pcTower(2.2, 7.4, 0); deskStuff(1.25, 7.42, 0);
     B(g, .55,2.1, 7.66,7.69, y+1.3,y+1.33, ledW, false);
-    if(th.accent!=='hex'){ B(g, .35,2.3, 7.64,7.668, y+1.55,y+2.35, pegM); for(let k=0;k<6;k++) B(g, .5+k*.3,.6+k*.3, 7.58,7.64, y+1.75+(k%2)*.3,y+1.85+(k%2)*.3, k%3?sm({color:0x3a5a40}):blk, false); }
+    deskWall(.35, 2.3, [1.6, 2.05]);
     chair(1.25, 6.45, Math.PI);
+    RB(.95,1.55, 7.3,7.6, y,y+.1, sm({color:0x2a2a2a, roughness:.8}), .02);   // ที่วางเท้า
   } else {
     const xa = .08, xb = .8, za = 5.45, zb = 7.6;
     RB(xa,xb, za,zb, y+.72,y+.765, deskTop, .015);
     if(th.legs==='steel'){ for(const z of [za+.06, zb-.06]){ B(g, xa+.05,xa+.09, z-.02,z+.02, y,y+.72, blk); B(g, xb-.09,xb-.05, z-.02,z+.02, y,y+.72, blk); } }
     else for(const [pa,pb] of [[za+.02,za+.42],[zb-.42,zb-.02]]){ B(g, xa+.02,xb-.04, pa,pb, y,y+.72, ped); for(const h of [.18,.36,.54]) B(g, xb-.045,xb-.04, pa+.01,pb-.01, y+h-.004,y+h+.004, M.trim, false); }
     B(g, xa+.02,xa+.04, za+.45,zb-.45, y+.66,y+.68, led1, false);
-    monitors(.3, 6.4, -Math.PI/2, th.monitors); pcTower(.45, 7.32, Math.PI);
-    if(ok) B(g, .08,.11, 5.5,7.45, y+1.75,y+2.45, sm({color: officeTheme==='japandi' ? 0xe8dcc6 : 0x3b2a1f, roughness:.8}), false);
-    if(th.accent!=='hex') B(g, .9,2.2, 7.64,7.668, y+1.0,y+1.8, pegM);
+    monitors(.3, 6.4, -Math.PI/2, th.monitors); pcTower(.45, 7.32, Math.PI); deskStuff(.3, 6.4, -Math.PI/2);
+    if(ok) B(g, .08,.11, 5.5,7.45, y+1.75,y+2.45, sm({color:th.curtain, roughness:.8}), false);
+    deskWall(.95, 2.25, [1.25, 1.7]);
     chair(1.2, 6.4, Math.PI/2);
   }
+  // ม่านหน้าต่างซ้าย (โหมดโต๊ะชิดผนัง)
+  if(ok && deskMode2==='wall'){ const cM = sm({color:th.curtain, roughness:1}); B(g, .13,.15, 5.3,7.66, y+2.55,y+2.57, metalM, false);
+    for(const [za,zb] of [[5.27,5.6],[7.33,7.67]]){ let i = 0; for(let z=za; z<zb-.01; z+=.055, i++) B(g, .1+(i%2)*.022,.125+(i%2)*.022, z,z+.06, y+.04,y+2.54, cM, false); } }
   // ---- โซฟา ----
-  const sofa = (xa,xb,za,zb, backSide)=>{ // backSide: 'z+' = พนักชิดผนังโรงรถ, 'x-' = พนักฝั่งซ้าย หันหน้าไปทาง +x
-    RB(xa,xb, za,zb, y,y+.38, sofaM, .06);
-    if(backSide==='z+'){ RB(xa+.12,xb-.12, za+.02,zb-.22, y+.38,y+.5, sofaM, .07); RB(xa+.12,xb-.12, zb-.25,zb, y+.38,y+.85, sofaM, .08); RB(xa,xa+.14, za,zb, y+.3,y+.62, sofaM, .06); RB(xb-.14,xb, za,zb, y+.3,y+.62, sofaM, .06);
-      for(const [x,c] of [[xa+.35,0x1b1b1b],[xa+.7,0xd9d4c9],[xb-.35,0x1b1b1b]]) RB(x-.18,x+.18, zb-.38,zb-.24, y+.5,y+.82, sm({color:c, roughness:1}), .06); }
-    else { RB(xa+.22,xb-.02, za+.12,zb-.12, y+.38,y+.5, sofaM, .07); RB(xa,xa+.25, za+.12,zb-.12, y+.38,y+.85, sofaM, .08); RB(xa,xb, za,za+.14, y+.3,y+.62, sofaM, .06); RB(xa,xb, zb-.14,zb, y+.3,y+.62, sofaM, .06);
-      for(const z of [za+.4, zb-.4]) RB(xa+.24,xa+.38, z-.18,z+.18, y+.5,y+.82, sm({color:th.led[0], roughness:1}), .06); } };
-  if(th.wallSide==='media'){ sofa(3.0,3.85, 5.75,7.6, 'x-'); B(g, 3.95,4.75, 5.8,7.1, y,y+.012, sm({color:th.rug, roughness:1}), false); }
-  else { sofa(2.7,4.8, 6.85,7.68, 'z+'); B(g, 2.55,4.85, 5.85,6.95, y,y+.012, sm({color:th.rug, roughness:1}), false);
-    const st = new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.04,24), shelfM); st.position.set(4.35,y+.45,6.4); g.add(st);
-    const sl = new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.45,10), frameM); sl.position.set(4.35,y+.225,6.4); g.add(sl); }
+  const sofa = (cx, cz, L, D, ry)=>{ const s = grp(cx, y, cz, ry), Mt = sofaM, st = th.sofaStyle, legM = sm({color:0x2a1a10, roughness:.5});
+    const rb = (w,h,d,px,py,pz,mat=Mt,r=.06)=> part(s, rbox(w,h,d,r), mat, px,py,pz);
+    if(st==='chester'){ rb(L-.3,.3,D, 0,.23,0, Mt,.04);
+      for(const sx of [-1,1]){ rb(.24,.5,D, sx*(L/2-.12),.33,0, Mt,.05); part(s, cyl(.14,.14,D,24), Mt, sx*(L/2-.12),.62,0, Math.PI/2,0,0); }
+      rb(L-.46,.12,D-.24, 0,.44,-.1, Mt,.05); rb(L-.3,.48,.2, 0,.62,D/2-.1, Mt,.05); part(s, cyl(.1,.1,L-.3,24), Mt, 0,.86,D/2-.1, 0,0,Math.PI/2);
+      const btn = sm({color:th.sofa, roughness:.3}); for(let r=0;r<2;r++) for(let i=0;i<9;i++){ const bx = -L/2+.35+i*(L-.7)/8+(r%2)*(L-.7)/16; if(bx>L/2-.3) continue; part(s, sph(.012,6,4), btn, bx,.6+r*.13,D/2-.205); }
+      for(const lx of [-1,1]) for(const lz of [-1,1]) part(s, cyl(.03,.02,.08,10), legM, lx*(L/2-.08),.04,lz*(D/2-.08));
+    } else if(st==='modular'){ const sh = .3, n = Math.max(2, Math.round((L-.32)/.75)), w = (L-.32)/n;
+      rb(L-.06,.06,D-.06, 0,.03,0, sm({color:0x1a1a1a, roughness:.8}),.01);
+      rb(L,sh-.06,D, 0,.06+(sh-.06)/2,0, Mt,.05);
+      for(const sx of [-1,1]) rb(.16,.28,D, sx*(L/2-.08),sh+.14,0, Mt,.07);
+      for(let i=0;i<n;i++){ const x = -L/2+.16+w*(i+.5); rb(w-.02,.16,D-.3, x,sh+.08,-.13, Mt,.07); rb(w-.05,.44,.26, x,sh+.26,D/2-.15, Mt,.1); }
+    } else { rb(L,.38,D, 0,.19,0); rb(L-.24,.12,D-.22, 0,.44,-.1); rb(L-.24,.47,.25, 0,.615,D/2-.125, Mt,.08);
+      for(const sx of [-1,1]) rb(.14,.32,D, sx*(L/2-.07),.46,0);
+      for(const lx of [-1,1]) for(const lz of [-1,1]) part(s, cyl(.025,.025,.06,10), legM, lx*(L/2-.08),.03,lz*(D/2-.08)); }
+    th.pillows.forEach((c,i)=>{ const px = [-L/2+.38, -L/2+.75, L/2-.38][i]; const p = rb(.38,.34,.13, px,.7,D/2-.32, sm({color:c, roughness:1}),.06); p.rotation.set(-.2,(i-1)*.12,(i===1?.08:0)); });
+    if(th.throwC){ const tm = sm({color:th.throwC, roughness:1}); rb(.55,.025,D*.75, L/2-.55,.515,-.04, tm,.01); rb(.55,.32,.025, L/2-.55,.37,-D/2-.01, tm,.01); } };
+  const rug = (xa,xb,za,zb)=>{ if(th.rugStyle==='none') return; const rm = sm({color:th.rug, roughness:1}), r2 = sm({color:th.rug2, roughness:1});
+    if(th.rugStyle==='round'){ part(g, cyl(.8,.8,.012,56), rm, (xa+xb)/2, y+.006, (za+zb)/2); part(g, new THREE.TorusGeometry(.7,.012,4,56), sm({color:th.led[0], roughness:1}), (xa+xb)/2, y+.012, (za+zb)/2, Math.PI/2,0,0); return; }
+    B(g, xa,xb, za,zb, y,y+.012, rm, false);
+    if(th.rugStyle==='stripe') for(let x=xa+.15; x<xb-.1; x+=.3) B(g, x,x+.1, za+.05,zb-.05, y+.012,y+.014, r2, false);
+    if(th.rugStyle==='border'){ const b = .1, t = .035; [[xa+b,xb-b,za+b,za+b+t],[xa+b,xb-b,zb-b-t,zb-b],[xa+b,xa+b+t,za+b,zb-b],[xb-b-t,xb-b,za+b,zb-b]].forEach(([a,bb,c,d])=> B(g, a,bb,c,d, y+.012,y+.014, r2, false));
+      B(g, (xa+xb)/2-.25,(xa+xb)/2+.25, (za+zb)/2-.18,(za+zb)/2+.18, y+.012,y+.014, r2, false); } };
+  const coffee = (x,z)=>{ const c = grp(x,y,z), t = th.coffee;
+    if(t==='round'){ part(c, cyl(.24,.24,.04,24), shelfM, 0,.45,0); part(c, cyl(.03,.03,.45,10), frameM, 0,.225,0); part(c, cyl(.15,.15,.02,20), frameM, 0,.01,0); }
+    if(t==='drum') part(c, cyl(.25,.25,.42,28), metalM, 0,.21,0);
+    if(t==='ottoman'){ part(c, cyl(.28,.28,.38,28), sm({color:th.sofa, roughness:th.sofaR}), 0,.21,0); for(let k=0;k<6;k++){ const a = k/6*6.283; part(c, sph(.012,6,4), metalM, Math.cos(a)*.15,.4,Math.sin(a)*.15); } part(c, cyl(.02,.02,.02,8), metalM, 0,.4,0); }
+    if(t==='tire'){ const tm = sm({color:0x141414, roughness:.9}); for(const yy of [.11,.33]) part(c, new THREE.TorusGeometry(.25,.1,12,28), tm, 0,yy,0, Math.PI/2,0,0); part(c, cyl(.33,.33,.02,32), sm({color:0x9fd6e8, transparent:true, opacity:.35, roughness:.05}), 0,.45,0); part(c, cyl(.16,.16,.2,20), chrome, 0,.22,0); }
+    if(t==='low'){ part(c, rbox(.95,.05,.5,.015), shelfM, 0,.36,0); for(const lx of [-1,1]) for(const lz of [-1,1]) part(c, box(.05,.34,.05), shelfM, lx*.4,.17,lz*.19); part(c, cyl(.06,.05,.08,16), sm({color:0x2b2b2b, roughness:.4}), .2,.42,0); }
+    if(t==='crate'){ part(c, box(.45,.34,.38), shelfM, 0,.17,0); part(c, box(.41,.3,.34), sm({color:0x1a1a1a}), 0,.2,0); for(let k=0;k<9;k++) part(c, box(.34,.3,.01), sm({color:pick([0xd9a640,0x6b1f2a,0xe8e0cc,0x1e2a44,0x2a2a2a])}), 0,.22,-.15+k*.035, 0,0,(k%3-1)*.04); }
+    if(t==='block') part(c, rbox(.48,.4,.48,.02), sm({color:0xe2d3bb, roughness:.6}), 0,.2,0);
+    if(t==='glass'){ part(c, cyl(.32,.32,.025,36), sm({color:0xdfe8f0, transparent:true, opacity:.55, roughness:.05}), 0,.4,0); part(c, cyl(.08,.18,.39,24), sm({color:th.frame, roughness:.2, metalness:.2}), 0,.195,0); part(c, cyl(.25,.25,.006,32), led1, 0,.385,0); }
+    if(t!=='crate' && t!=='low') part(c, box(.16,.03,.22), bookMat(), .02, t==='drum' ? .435 : t==='ottoman' ? .415 : t==='tire' ? .475 : t==='block' ? .415 : t==='glass' ? .43 : .485, .03, 0,.3,0); };
+  const floorLamp = (x,z, tx,tz)=>{ const t = th.floorLamp; if(!t) return;
+    if(t==='tube'){ part(g, cyl(.1,.1,.02,20), blk, x,y+.01,z); part(g, box(.035,1.5,.035), led1, x,y+.78,z); }
+    if(t==='tripod'){ const legM = sm({color:th.metal===0x131416 ? 0x6b4a32 : th.metal, roughness:.5, metalness:.3});
+      for(let k=0;k<3;k++){ const a = k/3*6.283 + .4; part(g, cyl(.012,.012,1.3,8), legM, x+Math.cos(a)*.1, y+.63, z+Math.sin(a)*.1, -Math.sin(a)*.16, 0, Math.cos(a)*.16); }
+      part(g, cyl(.19,.23,.28,28,true), sm({color:0xf1ead8, emissive:0xf6e0b8, emissiveIntensity:.45, side:THREE.DoubleSide, roughness:1}), x,y+1.38,z); part(g, sph(.05), glow(0xffe6b8,2), x,y+1.33,z); }
+    if(t==='arc'){ part(g, cyl(.16,.17,.05,28), sm({color:th.metal===0x131416 ? 0xe8e4dc : 0x2a2a2a, roughness:.3}), x,y+.025,z);
+      const curve = new THREE.QuadraticBezierCurve3(new THREE.Vector3(x,y+.05,z), new THREE.Vector3(x,y+2.7,z), new THREE.Vector3(tx,y+2.05,tz));
+      const tb = new THREE.Mesh(new THREE.TubeGeometry(curve, 32, .012, 8), metalM); g.add(tb);
+      const sh = new THREE.Mesh(new THREE.SphereGeometry(.2,28,12,0,Math.PI*2,0,Math.PI/2), sm({color:th.metal, roughness:.3, metalness:.7, side:THREE.DoubleSide})); sh.position.set(tx,y+1.86,tz); g.add(sh);
+      part(g, sph(.06), glow(0xfff0d0,2), tx,y+1.9,tz); } };
+  if(th.wallSide==='media'){ sofa(3.425,6.675, 1.85,.85, -Math.PI/2); rug(3.95,4.75, 5.8,7.1); coffee(4.35,6.45); floorLamp(4.0,7.55, 3.5,6.9); }
+  else { sofa(3.8,7.265, 2.0,.83, 0); rug(2.6,4.85, 5.85,6.95);
+    if(th.coffee==='low' || th.coffee==='crate') coffee(3.8,6.3); else coffee(4.35,6.4);
+    floorLamp(2.62,7.5, 3.3,7.05); }
   // ---- ของตกแต่งเหนือโซฟาตามธีม ----
-  if(officeTheme==='midnight') for(const [x,yy,c] of [[3.25,1.55,0xff4fd8],[3.47,1.68,0xb04dff],[3.69,1.55,0x6a5cff],[3.91,1.68,0xff4fd8],[4.13,1.55,0x3d6bff]]){ const h = new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.02,6), glow(c,1.3)); h.rotation.x = Math.PI/2; h.position.set(x, y+yy, 7.69); g.add(h); }
-  if(officeTheme==='industrial') for(const x of [3.05,3.75,4.45]){ B(g, x-.28,x+.28, 7.64,7.685, y+1.3,y+2.05, blk, false); B(g, x-.24,x+.24, 7.63,7.64, y+1.34,y+2.01, glow(0x1e6fb8, .55), false);
+  const DZ = 7.64;
+  const pic = (cx, cy, w, h, mat, fMat=frameM, fw=.03)=>{ if(fMat) B(g, cx-w/2-fw, cx+w/2+fw, DZ+.005, DZ+.04, y+cy-h/2-fw, y+cy+h/2+fw, fMat, false);
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(w,h), mat); p.rotation.y = Math.PI; p.position.set(cx, y+cy, DZ+(fMat?.003:.04)); g.add(p); return p; };
+  const texMat = (tex, emis=0)=> sm({map:tex, roughness:.85, ...(emis ? {emissiveMap:tex, emissive:0xffffff, emissiveIntensity:emis} : {})});
+  if(th.decor==='hex') for(const [x,yy,c] of [[3.25,1.55,0xff4fd8],[3.47,1.68,0xb04dff],[3.69,1.55,0x6a5cff],[3.91,1.68,0xff4fd8],[4.13,1.55,0x3d6bff]]){ const h = new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.02,6), glow(c,1.3)); h.rotation.x = Math.PI/2; h.position.set(x, y+yy, 7.69); g.add(h); }
+  if(th.decor==='blueprint') for(const x of [3.05,3.75,4.45]){ B(g, x-.28,x+.28, 7.64,7.685, y+1.3,y+2.05, blk, false); B(g, x-.24,x+.24, 7.63,7.64, y+1.34,y+2.01, glow(0x1e6fb8, .55), false);
       for(let k=0;k<4;k++) B(g, x-.18+k*.09,x-.16+k*.09, 7.625,7.63, y+1.45+k*.1,y+1.85, glow(0x9fe3ff, 1), false); }
-  if(officeTheme==='japandi'){ B(g, 3.15,4.35, 7.65,7.685, y+1.25,y+2.0, sm({color:0xe9e1d3}), false); const circ = new THREE.Mesh(new THREE.CircleGeometry(.22,32), sm({color:0x2b2b2b})); circ.rotation.y = Math.PI; circ.position.set(3.6, y+1.65, 7.645); g.add(circ); B(g, 3.9,4.15, 7.645,7.646, y+1.35,y+1.9, sm({color:0xb07850}), false); }
+  if(th.decor==='art'){ B(g, 3.15,4.35, 7.65,7.685, y+1.25,y+2.0, sm({color:0xe9e1d3}), false); const circ = new THREE.Mesh(new THREE.CircleGeometry(.22,32), sm({color:0x2b2b2b})); circ.rotation.y = Math.PI; circ.position.set(3.6, y+1.65, 7.645); g.add(circ); B(g, 3.9,4.15, 7.645,7.646, y+1.35,y+1.9, sm({color:0xb07850}), false); }
+  if(th.decor==='posters'){ const P3 = th.decorC.map(hx);
+    [(c,w,h)=>{ c.fillStyle = P3[2]; c.fillRect(0,0,w,h); c.fillStyle = P3[1]; c.beginPath(); c.arc(w/2,h*.42,w*.3,0,7); c.fill(); c.fillStyle = P3[0]; c.fillRect(0,h*.62,w,h*.38); },
+     (c,w,h)=>{ c.fillStyle = P3[0]; c.fillRect(0,0,w,h); for(let i=0;i<6;i++){ c.fillStyle = i%2 ? P3[2] : P3[3]; c.fillRect(w*.15, h*.15+i*h*.11, w*.7*(1-i*.1), h*.06); } },
+     (c,w,h)=>{ c.fillStyle = P3[2]; c.fillRect(0,0,w,h); c.fillStyle = P3[3]; c.beginPath(); c.moveTo(w*.2,h*.85); c.lineTo(w*.2,h*.45); c.arc(w*.5,h*.45,w*.3,Math.PI,0); c.lineTo(w*.8,h*.85); c.fill(); c.fillStyle = P3[0]; c.fillRect(w*.2,h*.85,w*.6,h*.03); }
+    ].forEach((fn,i)=> pic(3.1+i*.68, 1.68, .46, .62, texMat(cTex(184,248,fn)), frameM)); }
+  if(th.decor==='gallery'){ const oil = (hue)=> cTex(200,160,(c,w,h)=>{ const gr = c.createLinearGradient(0,0,0,h); gr.addColorStop(0,`hsl(${hue},30%,28%)`); gr.addColorStop(1,`hsl(${hue+20},35%,12%)`); c.fillStyle = gr; c.fillRect(0,0,w,h);
+      for(let i=0;i<40;i++){ c.fillStyle = `hsla(${hue+rnd()*60-30},${30+rnd()*30}%,${20+rnd()*40}%,.35)`; c.beginPath(); c.ellipse(rnd()*w, h*.4+rnd()*h*.6, 10+rnd()*40, 4+rnd()*12, 0, 0, 7); c.fill(); } });
+    for(const [cx,cy,w,h,hue] of [[3.45,1.7,.78,.56,30],[4.35,1.9,.34,.28,90],[4.35,1.48,.34,.28,15],[2.95,1.78,.28,.38,200]]) pic(cx,cy,w,h, texMat(oil(hue)), metalM, .045); }
+  if(th.decor==='neon'){ const t = cTex(1024,256,(c,w,h)=>{ c.clearRect(0,0,w,h); c.font = 'bold 150px "Arial Rounded MT Bold", Arial, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      for(const [blur,col] of [[40,hx(th.led[0])],[18,hx(th.led[0])],[0,'#ffe8fb']]){ c.shadowBlur = blur; c.shadowColor = hx(th.led[0]); c.fillStyle = col; c.fillText(th.decorText, w/2, h/2); } });
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(1.7,.43), new THREE.MeshBasicMaterial({map:t, transparent:true, depthWrite:false})); p.rotation.y = Math.PI; p.position.set(3.75, y+1.75, 7.655); g.add(p);
+    B(g, 2.85,4.65, 7.66,7.67, y+1.5,y+2.0, sm({color:0x9fd6e8, transparent:true, opacity:.12}), false); }
+  if(th.decor==='records') for(let r=0;r<2;r++) for(let i=0;i<3;i++){ const x = 3.15+i*.6, yy = 1.45+r*.48;
+      part(g, cyl(.16,.16,.008,40), sm({color:0x0e0e0e, roughness:.25}), x, y+yy, 7.635, Math.PI/2,0,0); part(g, cyl(.055,.055,.01,24), sm({color:pick([0xd9a640,0xe8e0cc,0xc8642a,0x6b1f2a,0x1e2a44])}), x, y+yy, 7.633, Math.PI/2,0,0);
+      B(g, x+.08,x+.42, 7.65,7.66, y+yy-.17,y+yy+.17, sm({color:pick(th.boxC)}), false); }
+  if(th.decor==='clock'){ part(g, cyl(.36,.36,.04,64), sm({color:0x1c1c1e}), 3.75, y+1.75, 7.66, Math.PI/2,0,0); part(g, cyl(.33,.33,.045,64), sm({color:0xf4f4f2, roughness:.6}), 3.75, y+1.75, 7.658, Math.PI/2,0,0);
+    for(let k=0;k<12;k++){ const a = k/12*6.283; B(g, 3.75+Math.sin(a)*.28-.008,3.75+Math.sin(a)*.28+.008, 7.632,7.636, y+1.75+Math.cos(a)*.28-(k%3?.02:.04),y+1.75+Math.cos(a)*.28+(k%3?.02:.04), sm({color:0x1c1c1e}), false); }
+    part(g, box(.02,.2,.004), sm({color:0x1c1c1e}), 3.75-.05, y+1.75+.07, 7.63, 0,0,.7); part(g, box(.014,.27,.004), sm({color:0x1c1c1e}), 3.75+.06, y+1.75-.1, 7.628, 0,0,-2.6); part(g, box(.006,.27,.003), sm({color:0xd9301c}), 3.75, y+1.75+.12, 7.626, 0,0,.1); }
+  if(th.decor==='sun'){ const P3 = th.decorC.map(hx); pic(3.75, 1.7, .95, .7, texMat(cTex(380,280,(c,w,h)=>{ c.fillStyle = P3[2]; c.fillRect(0,0,w,h); c.fillStyle = P3[1]; c.beginPath(); c.arc(w*.5,h*.62,h*.34,Math.PI,0); c.fill();
+      c.fillStyle = P3[0]; c.fillRect(0,h*.62,w,h*.38); c.strokeStyle = P3[2]; c.lineWidth = 6; for(let i=1;i<4;i++){ c.beginPath(); c.moveTo(0,h*.62+i*h*.09); c.lineTo(w,h*.62+i*h*.09); c.stroke(); } })), sm({color:0xd9c3a3})); }
+  if(th.decor==='flag'){ pic(3.4, 1.8, 1.0, .62, texMat(cTex(400,248,(c,w,h)=>{ for(let r=0;r<6;r++) for(let i=0;i<10;i++){ c.fillStyle = (r+i)%2 ? '#111' : '#f4f4f2'; c.fillRect(i*40, r*41.4, 40, 41.4); } })), null);
+    pic(4.4, 1.62, .32, .16, texMat(cTex(256,128,(c,w,h)=>{ c.fillStyle = '#f4f4f2'; c.fillRect(0,0,w,h); c.strokeStyle = '#111'; c.lineWidth = 8; c.strokeRect(6,6,w-12,h-12); c.fillStyle = '#c4161c'; c.font = 'bold 64px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('PIT 01', w/2, h/2+4); })), chrome, .01);
+    part(g, sph(.15,24,12), sm({color:0xf4f4f2, roughness:.3}), 4.4, y+2.05, 7.55); part(g, box(.2,.035,.18), sm({color:0xc4161c}), 4.4, y+2.05, 7.53); }
+  if(th.decor==='shoji'){ const t = cTex(320,220,(c,w,h)=>{ c.fillStyle = '#f6ead2'; c.fillRect(0,0,w,h); c.fillStyle = '#c23b22'; c.beginPath(); c.arc(w*.62,h*.42,h*.2,0,7); c.fill(); c.strokeStyle = '#2a1d15'; c.lineWidth = 5; for(let i=1;i<5;i++){ c.beginPath(); c.moveTo(i*w/5,0); c.lineTo(i*w/5,h); c.stroke(); } for(let i=1;i<3;i++){ c.beginPath(); c.moveTo(0,i*h/3); c.lineTo(w,i*h/3); c.stroke(); } });
+    pic(3.75, 1.72, 1.35, .9, texMat(t, .8), sm({color:0x2a1d15}), .05); }
+  if(th.decor==='planet'){ const t = cTex(480,300,(c,w,h)=>{ c.fillStyle = '#0a1020'; c.fillRect(0,0,w,h); for(let i=0;i<160;i++){ c.fillStyle = `rgba(255,255,255,${rnd()})`; c.fillRect(rnd()*w, rnd()*h, 1.5, 1.5); }
+      const gr = c.createRadialGradient(w*.45,h*.42,10,w*.5,h*.5,h*.34); gr.addColorStop(0,'#9fd0ff'); gr.addColorStop(.6,'#3d6bd0'); gr.addColorStop(1,'#14244a'); c.fillStyle = gr; c.beginPath(); c.arc(w*.5,h*.5,h*.34,0,7); c.fill();
+      c.strokeStyle = 'rgba(200,225,255,.8)'; c.lineWidth = 6; c.beginPath(); c.ellipse(w*.5,h*.5,h*.62,h*.12,-.25,0,7); c.stroke(); });
+    pic(3.75, 1.72, 1.25, .78, texMat(t, .9), sm({color:0xf2f4f6}), .04); }
   // ---- ผนังฝั่งโถง ตามธีม ----
   { const xa = 4.88, xb = 5.235, za = 5.21, zb = 7.70, n = 3, bay = (zb-za)/n;
-    const books = (z0,z1,h)=>{ let z = z0+.03; while(z < z1-.25){ const w = .025+rnd()*.035, hh = .2+rnd()*.1; if(rnd()<.82) B(g, xa+.06,xb-.06, z,z+w, y+h+.025,y+h+.025+hh, sm({color:[0x1e2a3a,0x6b2020,0xd8cfbf,0x2f4a3a,0x8a6a2a,0x222222][Math.floor(rnd()*6)], roughness:.8}), false); z += w+.004; } };
+    const books = (z0,z1,h,gap=.25)=>{ let z = z0+.03; while(z < z1-gap){ const w = .025+rnd()*.035, hh = .2+rnd()*.1; if(rnd()<.82) B(g, xa+.06,xb-.06, z,z+w, y+h+.025,y+h+.025+hh, bookMat(), false); z += w+.004; } };
     seed = 7;
     if(th.wallSide==='bookcase' || th.wallSide==='oak'){
       const back = th.wallSide==='oak' ? shelfM : frameM, doors = th.wallSide==='oak' ? sm({color:0xf3f1ec}) : frameM;
@@ -636,25 +862,118 @@ function office3(ok){
       for(let i=0;i<=n;i++){ const z = za+i*bay; B(g, xa,xb, z-.02,z+.02, y,top, frameM); }
       B(g, xa,xb, za,zb, top-.04,top, frameM); B(g, xa,xb, za,zb, y,y+.08, frameM);
       for(let i=0;i<n;i++){ const z0 = za+i*bay+.02, z1 = za+(i+1)*bay-.02;
-        B(g, xa-.005,xa, z0+.005,z1-.005, y+.08,y+.82, doors, false);
-        for(let h=.82; h<top-y-.2; h+=.36){ B(g, xa,xb-.02, z0,z1, y+h,y+h+.025, shelfM); B(g, xa+.01,xa+.03, z0+.03,z1-.03, y+h-.012,y+h, ledW, false); books(z0,z1,h); } }
+        B(g, xa-.005,xa, z0+.005,z1-.005, y+.08,y+.82, doors, false); for(const zz of [(z0+z1)/2-.04,(z0+z1)/2+.04]) B(g, xa-.025,xa-.005, zz-.006,zz+.006, y+.6,y+.75, metalM, false);
+        for(let h=.82; h<H-.2; h+=.36){ B(g, xa,xb-.02, z0,z1, y+h,y+h+.025, shelfM); B(g, xa+.01,xa+.03, z0+.03,z1-.03, y+h-.012,y+h, ledW, false); books(z0,z1,h);
+          if(rnd()<.35) part(g, rnd()<.5 ? sph(.045) : cyl(.04,.05,.12,12), sm({color:pick(th.boxC.concat(th.decorC)), roughness:.4}), (xa+xb)/2, y+h+.025+.06, z1-.12); } }
+      if(th.ladder){ B(g, xa-.1,xa-.07, za+.05,zb-.05, top-.27,top-.25, metalM, false); for(const z of [za+.05, zb-.05]) B(g, xa-.1,xa, z-.01,z+.01, top-.28,top-.24, metalM, false);
+        const L = new THREE.Group(), len = Math.hypot(.48, H-.26); L.position.set(xa-.56, y, 5.85); L.rotation.z = -Math.atan2(.48, H-.26); g.add(L);
+        for(const s of [-1,1]) part(L, box(.035,len,.035), shelfM, 0,len/2,s*.2); for(let h=.3; h<len-.1; h+=.3) part(L, cyl(.015,.015,.4,10), metalM, 0,h,0, Math.PI/2,0,0);
+        part(L, cyl(.03,.03,.04,12), metalM, 0,len,-.2, 0,0,Math.PI/2); part(L, cyl(.03,.03,.04,12), metalM, 0,len,.2, 0,0,Math.PI/2); }
     }
     if(th.wallSide==='steel'){
-      B(g, xb-.02,xb, za,zb, y,top, sm({map:rep(T.brick, 2.49/.9, (top-y)/.55), roughness:.95}), false);
+      B(g, xb-.02,xb, za,zb, y,top, sm({map:rep(T.brick, 2.49/.9, H/.55), roughness:.95}), false);
       for(const z of [za+.03, za+bay, za+2*bay, zb-.03]) for(const x of [xa+.03, xb-.05]) B(g, x-.015,x+.015, z-.015,z+.015, y,top, frameM);
-      for(let h=.1; h<top-y-.1; h+=.42){ B(g, xa+.01,xb-.03, za,zb, y+h,y+h+.035, shelfM); for(let i=0;i<n;i++){ const z0 = za+i*bay+.03, z1 = za+(i+1)*bay-.03; if(h<.5 && i!==1){ B(g, xa+.06,xb-.08, z0+.05,z1-.05, y+h+.035,y+h+.3, sm({color:0x6b5a45, roughness:1}), false); } else books(z0,z1,h+.01); } }
+      for(let h=.1; h<H-.1; h+=.42){ B(g, xa+.01,xb-.03, za,zb, y+h,y+h+.035, shelfM); for(let i=0;i<n;i++){ const z0 = za+i*bay+.03, z1 = za+(i+1)*bay-.03; if(h<.5 && i!==1){ B(g, xa+.06,xb-.08, z0+.05,z1-.05, y+h+.035,y+h+.3, sm({color:0x6b5a45, roughness:1}), false); } else books(z0,z1,h+.01); } }
     }
     if(th.wallSide==='media'){
       B(g, xb-.02,xb, za,zb, y,top, frameM, false);
       B(g, 4.9,4.93, 5.84,7.06, y+1.0,y+1.69, blk); B(g, 4.893,4.9, 5.87,7.03, y+1.03,y+1.66, glow(0x3a2a8f, .8), false);    // ทีวี 55"
       B(g, 4.9,5.2, 5.9,7.0, y,y+.45, frameM); B(g, 4.895,4.9, 5.95,6.95, y+.43,y+.45, led2, false);                        // ชั้นวางคอนโซล
+      B(g, 4.95,5.15, 6.1,6.4, y+.45,y+.5, sm({color:0xf2f2f2, roughness:.4}), false); B(g, 4.97,5.15, 6.6,6.7, y+.45,y+.79, blk, false);   // คอนโซลเกม
       for(const [z0,z1] of [[5.25,5.82],[7.08,7.65]]){ B(g, 4.9,5.22, z0,z1, y,y+2.3, sm({color:0x9fd6e8, transparent:true, opacity:.18, roughness:.05}), false);
         for(const h of [.05,.55,1.05,1.55,2.05]){ B(g, 4.92,5.2, z0+.02,z1-.02, y+h,y+h+.015, sm({color:0xcfe9f2, transparent:true, opacity:.5}), false); B(g, 4.93,4.95, z0+.04,z1-.04, y+h+.4,y+h+.41, led1, false);
           if(h<2) for(let k=0;k<3;k++){ const zz = z0+.1+k*.16; B(g, 5.0,5.12, zz,zz+.08, y+h+.015,y+h+.17+rnd()*.12, sm({color:[0xff3355,0x33ddff,0xffcc33,0xffffff][Math.floor(rnd()*4)], roughness:.5}), false); } } }
     }
+    if(th.wallSide==='cubby'){ const cols = 6, cw = (zb-za)/cols, rh = .42, rows = Math.floor(H/rh);
+      B(g, xb-.02,xb, za,zb, y,top, th.cubbyGlow ? glow(th.led[1], .12) : frameM, false);
+      for(let i=0;i<=cols;i++){ const z = za+i*cw; B(g, xa,xb-.02, Math.max(za,z-.012),Math.min(zb,z+.012), y,top, frameM); }
+      for(let r=0;r<=rows;r++){ const h = Math.min(r*rh, H-.03); B(g, xa,xb-.02, za,zb, y+h,y+h+.03, frameM); }
+      B(g, xa,xb-.02, za,zb, top-.03,top, frameM);
+      for(let r=0;r<rows;r++) for(let i=0;i<cols;i++){ const z0 = za+i*cw+.012, z1 = za+(i+1)*cw-.012, h0 = r*rh+.03, f = pick(th.fill);
+        if(f==='books') books(z0,z1,h0-.025,.06);
+        else if(f==='box'){ B(g, xa+.03,xb-.05, z0+.02,z1-.02, y+h0,y+h0+.3, sm({color:pick(th.boxC), roughness:.7}), false); B(g, xa+.025,xa+.03, (z0+z1)/2-.05,(z0+z1)/2+.05, y+h0+.22,y+h0+.25, blk, false); }
+        else if(f==='records'){ for(let k=0;k<8;k++) B(g, xa+.04,xb-.06, z0+.02+k*.042, z0+.03+k*.042, y+h0,y+h0+.31, sm({color:pick([0x111111,0xd9a640,0xe8e0cc,0xc8642a,0x6b1f2a,0x1e2a44,0x2f6b6a])}), false); }
+        else { part(g, rnd()<.5 ? sph(.07) : cyl(.05,.07,.22,16), sm({color:pick(th.boxC.concat(th.decorC)), roughness:.35}), (xa+xb)/2, y+h0+(rnd()<.5?.07:.11), (z0+z1)/2); }
+        if(th.cubbyGlow) B(g, xa+.005,xa+.02, z0,z1, y+h0+rh-.08,y+h0+rh-.07, led1, false); }
+    }
+    if(th.wallSide==='garage'){ const red = sm({color:th.accentC, roughness:.35, metalness:.4});
+      B(g, xb-.02,xb, za,zb, y,top, wallM, false);
+      B(g, xa,xb, za,zb, y+.06,y+.9, red); B(g, xa+.02,xb, za,zb, y,y+.06, blk);
+      for(let i=1;i<n;i++) B(g, xa-.005,xa, za+i*bay-.005,za+i*bay+.005, y+.08,y+.88, blk, false);
+      for(let i=0;i<n;i++){ const z0 = za+i*bay, z1 = z0+bay; for(const hh of [.25,.45,.62,.76]){ B(g, xa-.006,xa, z0+.03,z1-.03, y+hh-.003,y+hh, blk, false); B(g, xa-.03,xa-.006, (z0+z1)/2-.15,(z0+z1)/2+.15, y+hh+.04,y+hh+.055, chrome, false); } }
+      B(g, xa-.02,xb, za,zb, y+.9,y+.94, sm({color:0xa8abae, metalness:.8, roughness:.3}));
+      B(g, xb-.035,xb-.02, za+.05,zb-.05, y+1.02,y+2.22, sm({color:0x2a2c2e, roughness:.8}));
+      for(let k=0;k<14;k++){ const z = za+.18+k*.165, hh = 1.15+((k*7)%5)*.18, t = rnd();
+        if(t<.45){ B(g, xb-.06,xb-.035, z-.012,z+.012, y+hh,y+hh+.22, chrome, false); part(g, new THREE.TorusGeometry(.025,.008,6,12), chrome, xb-.05, y+hh+.24, z, 0,Math.PI/2,0); }
+        else if(t<.7){ B(g, xb-.06,xb-.035, z-.01,z+.01, y+hh,y+hh+.25, sm({color:0x1a1a1a}), false); B(g, xb-.07,xb-.035, z-.045,z+.045, y+hh+.22,y+hh+.27, chrome, false); }
+        else B(g, xb-.08,xb-.035, z-.04,z+.04, y+hh,y+hh+.12, red, false); }
+      B(g, xa+.04,xb, za,zb, y+2.3,y+2.33, sm({color:0xa8abae, metalness:.8, roughness:.3})); B(g, xa+.04,xb, za,zb, y+2.72,y+2.75, sm({color:0xa8abae, metalness:.8, roughness:.3}));
+      for(const [zc,hh] of [[za+.45,2.33],[za+1.25,2.33],[za+2.05,2.33],[za+.45,2.75],[za+1.25,2.75],[za+2.05,2.75]]){ if(zc===za+.45 && hh===2.33){ part(g, new THREE.SphereGeometry(.15,24,12,0,Math.PI*2,0,Math.PI/2), sm({color:0xf4f4f2, roughness:.3}), (xa+xb)/2+.02, y+hh, zc); part(g, box(.31,.03,.06), red, (xa+xb)/2+.02, y+hh+.03, zc); part(g, box(.02,.07,.2), sm({color:0x111111, roughness:.1}), xa+.05, y+hh+.08, zc); continue; }
+        B(g, xa+.06,xb-.03, zc-.3,zc+.3, y+hh,y+hh+.25, sm({color:pick([0x2a2c2e,0x3a3d40,0xc4161c]), roughness:.6}), false); }
+      part(g, box(.2,.12,.3), red, (xa+xb)/2, y+1.0, 6.0); part(g, box(.08,.2,.06), sm({color:0x1a1a1a}), (xa+xb)/2, y+1.04, 6.9); part(g, box(.12,.06,.14), sm({color:0xd9a640}), (xa+xb)/2, y+1.17, 6.9); }
+    if(th.wallSide==='arch'){ const W = zb-za, nw = .56, gap = (W-3*nw)/4, v0 = .55, v1 = 2.3;
+      B(g, xb-.02,xb, za,zb, y,top, sm({color:th.accentC, roughness:.95}), false);
+      const shp = new THREE.Shape(); shp.moveTo(0,0); shp.lineTo(W,0); shp.lineTo(W,H); shp.lineTo(0,H); shp.lineTo(0,0);
+      for(let i=0;i<3;i++){ const u0 = gap+i*(nw+gap), u1 = u0+nw, hole = new THREE.Path(); hole.moveTo(u0,v0); hole.lineTo(u1,v0); hole.lineTo(u1,v1); hole.absarc((u0+u1)/2, v1, nw/2, 0, Math.PI, false); hole.lineTo(u0,v0); shp.holes.push(hole);
+        const z0 = za+u0, z1 = za+u1;
+        for(const zz of [z0,z1]) B(g, xa+.05,xb-.02, zz-.006,zz+.006, y+v0,y+v1+nw/2, frameM, false);
+        B(g, xa+.05,xb-.02, z0,z1, y+v0-.02,y+v0, frameM, false); B(g, xa+.05,xb-.02, z0,z1, y+v1+nw/2-.02,y+v1+nw/2, frameM, false);
+        for(const hh of [1.15,1.75]){ B(g, xa+.05,xb-.02, z0,z1, y+hh,y+hh+.03, shelfM); }
+        B(g, xa+.06,xa+.08, z0+.04,z1-.04, y+v1-.02,y+v1, ledW, false);
+        for(const hh of [v0,1.18,1.78]){ const k = rnd(); if(k<.4) part(g, cyl(.05,.08,.25,20), sm({color:pick([0xa4573a,0xefe6d6,0x6b6157,0xd9a066]), roughness:.5}), (xa+xb)/2, y+hh+.125, (z0+z1)/2-.08);
+          else if(k<.7) part(g, sph(.09,20,14), sm({color:pick([0xefe6d6,0xa4573a,0x6b7a4a]), roughness:.5}), (xa+xb)/2, y+hh+.09, (z0+z1)/2+.06);
+          else books(z0,z1,hh-.02,.12); } }
+      const ag = new THREE.ExtrudeGeometry(shp, {depth:.06, bevelEnabled:false}); const am = new THREE.Mesh(ag, frameM); am.rotation.y = -Math.PI/2; am.position.set(xa+.06, y, za); am.castShadow = true; am.receiveShadow = true; g.add(am);
+      for(let i=0;i<3;i++) B(g, xa-.005,xa, za+gap+i*(nw+gap)+.03, za+gap+i*(nw+gap)+nw-.03, y+.1,y+.45, sm({color:th.frame, roughness:.6}), false); }
+  }
+  // ---- ของชิ้นเด่นตรงมุมห้อง ----
+  { const e = th.extra; const c = deskMode2==='wall' ? grp(.5, y, 5.75, Math.PI/2) : grp(1.65, y, 7.38, Math.PI);
+    const EC = sm({color:th.extraC, roughness:.45});
+    if(e==='telescope'){ for(let k=0;k<3;k++){ const a = k/3*6.283; part(c, cyl(.012,.012,1.05,8), blk, Math.cos(a)*.14,.5,Math.sin(a)*.14, -Math.sin(a)*.2,0,Math.cos(a)*.2); }
+      part(c, sph(.04), blk, 0,1.02,0); const tb = part(c, cyl(.06,.075,.85,24), sm({color:0xf2f2f2, roughness:.3}), 0,1.18,-.12, -.9,0,0); part(c, cyl(.08,.08,.06,24), blk, 0,1.48,-.43, -.9,0,0); part(c, cyl(.015,.015,.1,10), blk, 0,.94,.18, -.9,0,0); }
+    if(e==='guitar'){ part(c, box(.04,.5,.04), blk, 0,.25,.08, .2,0,0); for(const s of [-1,1]) part(c, box(.03,.03,.3), blk, s*.12,.03,.0, 0,0,0);
+      const gg = new THREE.Group(); gg.position.set(0,.12,0); gg.rotation.x = -.18; c.add(gg);
+      part(gg, cyl(.19,.19,.09,32), EC, 0,.28,0, Math.PI/2,0,0); part(gg, cyl(.145,.145,.09,32), EC, 0,.55,0, Math.PI/2,0,0);
+      part(gg, cyl(.045,.045,.095,20), sm({color:0x111111}), 0,.5,0, Math.PI/2,0,0); part(gg, box(.055,.62,.03), sm({color:0x3a2416}), 0,.98,0); part(gg, box(.08,.16,.025), sm({color:0x1a1a1a}), 0,1.36,0);
+      part(gg, box(.12,.02,.02), sm({color:0x1a1a1a}), 0,.25,.05); }
+    if(e==='speaker'){ part(c, rbox(.3,1.05,.32,.02), sm({color:0x1a1a1a, roughness:.5}), 0,.555,0); part(c, box(.32,.03,.34), blk, 0,.015,0);
+      for(const [yy,r] of [[.3,.1],[.58,.1],[.85,.05]]){ part(c, cyl(r,r,.02,32), sm({color:0x2a2a2a, roughness:.3, metalness:.4}), 0,yy,.165, Math.PI/2,0,0); part(c, cyl(r*.35,r*.35,.03,16), chrome, 0,yy,.17, Math.PI/2,0,0); }
+      part(c, box(.2,.006,.005), glow(th.led[0],1.2), 0,.98,.163); }
+    if(e==='arcade'){ const cab = sm({color:0x111111, roughness:.5}), side = glow(th.led[0], .5);
+      part(c, box(.6,1.75,.5), cab, 0,.875,-.02); for(const s of [-1,1]) part(c, box(.012,1.7,.48), side, s*.307,.87,-.02);
+      part(c, box(.52,.42,.02), glow(th.led[1], .9), 0,1.32,.2, -.25,0,0); part(c, box(.56,.16,.04), glow(0xffe060,1.2), 0,1.65,.23);
+      part(c, box(.58,.06,.2), sm({color:0x1e1e2a}), 0,.98,.3, .25,0,0); part(c, cyl(.012,.012,.08,8), blk, -.15,1.04,.3); part(c, sph(.025), sm({color:0xff2b2b}), -.15,1.08,.3);
+      for(let k=0;k<4;k++) part(c, cyl(.02,.02,.02,12), glow([0xff2bd6,0x00e5ff,0xffe060,0x7cff6b][k], .9), .02+k*.07,1.02,.3+(k%2)*.02);
+      part(c, box(.15,.2,.01), sm({color:0x222222}), 0,.6,.235); part(c, box(.04,.06,.012), glow(0xff3030,1), 0,.62,.24); }
+    if(e==='globe'){ for(let k=0;k<3;k++){ const a = k/3*6.283; part(c, cyl(.02,.015,.6,10), shelfM, Math.cos(a)*.17,.3,Math.sin(a)*.17, -Math.sin(a)*.18,0,Math.cos(a)*.18); }
+      part(c, new THREE.TorusGeometry(.26,.012,8,40), metalM, 0,.6,0, Math.PI/2,0,0);
+      const gt = cTex(256,128,(cc,w,h)=>{ cc.fillStyle = '#c9b48a'; cc.fillRect(0,0,w,h); cc.fillStyle = '#5a7a6a'; for(let i=0;i<12;i++){ cc.beginPath(); cc.ellipse(rnd()*w, 20+rnd()*(h-40), 10+rnd()*25, 6+rnd()*18, rnd()*3, 0, 7); cc.fill(); } cc.strokeStyle = 'rgba(80,50,20,.4)'; for(let i=1;i<8;i++){ cc.beginPath(); cc.moveTo(i*w/8,0); cc.lineTo(i*w/8,h); cc.stroke(); } });
+      const gl = part(c, new THREE.SphereGeometry(.23,32,20), sm({map:gt, roughness:.5}), 0,.86,0, 0,0,.4); part(c, new THREE.TorusGeometry(.25,.008,6,40), metalM, 0,.86,0, 0,0,.4); }
+    if(e==='record'){ const wd = sm({color:th.desk, roughness:.5}); part(c, box(.62,.4,.4), wd, 0,.42,0); for(const lx of [-1,1]) for(const lz of [-1,1]) part(c, cyl(.018,.01,.22,8), wd, lx*.27,.11,lz*.16, lz*.12,0,-lx*.12);
+      for(const s of [-1,1]) part(c, box(.29,.34,.006), sm({color:th.decorC[1] ?? 0x2f6b6a, roughness:.6}), s*.15,.42,.203);
+      part(c, box(.46,.06,.34), sm({color:0x3a2416, roughness:.4}), 0,.65,0); part(c, cyl(.15,.15,.02,40), blk, -.05,.69,0); part(c, cyl(.145,.145,.004,40), sm({color:0x0e0e0e, roughness:.2}), -.05,.701,0); part(c, cyl(.05,.05,.006,20), sm({color:0xc8642a}), -.05,.704,0);
+      part(c, box(.015,.015,.22), chrome, .16,.7,.03, 0,.4,0); part(c, cyl(.03,.03,.03,12), chrome, .17,.69,-.1);
+      for(let k=0;k<5;k++) part(c, box(.31,.31,.01), sm({color:pick([0xd9a640,0xc8642a,0x2f6b6a,0xe8dcc4,0x111111])}), -.1+k*.0,.16+.16,.24+k*.012, -.12,0,0); }
+    if(e==='vase'){ const vm = [0xe9e1d3,0x8a7a62,0x2b2b2b]; part(c, cyl(.09,.13,.55,28), sm({color:vm[0], roughness:.6}), -.1,.275,0); part(c, sph(.15,24,18), sm({color:vm[1], roughness:.5}), .14,.15,.05); part(c, cyl(.04,.07,.3,20), sm({color:vm[2], roughness:.4}), .1,.15,-.15);
+      part(c, cyl(.04,.06,.1,16), sm({color:vm[0], roughness:.6}), -.1,.6,0); for(let k=0;k<4;k++) part(c, cyl(.004,.004,.5,6), sm({color:0x9a8460}), -.1+((k%2)-.5)*.05,.85,((k>>1)-.5)*.05, ((k>>1)-.5)*.3,0,((k%2)-.5)*.3); }
+    if(e==='blanket'){ const L = new THREE.Group(); L.position.set(0,0,-.05); L.rotation.x = -.18; c.add(L); for(const s of [-1,1]) part(L, box(.035,1.6,.035), shelfM, s*.22,.8,0); for(let h=.3; h<1.6; h+=.3) part(L, cyl(.013,.013,.44,8), shelfM, 0,h,0, 0,0,Math.PI/2);
+      [[1.2,0xd9a066],[.9,0xa4573a],[.6,0xefe6d6]].forEach(([h,col])=>{ const bm = sm({color:col, roughness:1}); part(L, box(.4,.03,.06), bm, 0,h+.015,0); part(L, box(.38,.5,.012), bm, 0,h-.24,.03); }); }
+    if(e==='toolchest'){ const red = sm({color:0xc4161c, roughness:.35, metalness:.4}); part(c, box(.56,.82,.42), red, 0,.5,0); part(c, box(.58,.06,.44), blk, 0,.94,0);
+      for(let k=0;k<6;k++){ const hh = .2+k*.12; part(c, box(.54,.006,.005), blk, 0,hh,.213); part(c, box(.32,.015,.02), chrome, 0,hh+.05,.22); }
+      for(const lx of [-1,1]) for(const lz of [-1,1]) part(c, cyl(.035,.035,.03,12), blk, lx*.24,.04,lz*.17, 0,0,Math.PI/2); part(c, box(.03,.3,.03), chrome, .3,.8,0);
+      part(c, box(.18,.1,.12), sm({color:0xd9a640}), -.1,1.02,0); part(c, box(.06,.12,.04), blk, .12,1.03,0); }
+    if(e==='andon'){ const fw = sm({color:0x2a1d15, roughness:.6}); for(const lx of [-1,1]) for(const lz of [-1,1]) part(c, box(.03,1.0,.03), fw, lx*.16,.5,lz*.16);
+      part(c, box(.3,.7,.3), glow(th.lanternC, .7), 0,.6,0); for(const hh of [.25,.48,.71,.95]) for(const s of [-1,1]){ part(c, box(.34,.02,.02), fw, 0,hh,s*.16); part(c, box(.02,.02,.34), fw, s*.16,hh,0); } }
+    if(e==='moon'){ const mt = cTex(256,128,(cc,w,h)=>{ cc.fillStyle = '#e8e4da'; cc.fillRect(0,0,w,h); for(let i=0;i<60;i++){ cc.fillStyle = `rgba(120,115,105,${.15+rnd()*.25})`; cc.beginPath(); cc.arc(rnd()*w, rnd()*h, 2+rnd()*10, 0, 7); cc.fill(); } });
+      part(c, cyl(.16,.18,.04,32), sm({color:0xf2f4f6, roughness:.2}), 0,.02,0); part(c, cyl(.012,.012,.7,10), chrome, 0,.37,0);
+      const mm = part(c, new THREE.SphereGeometry(.24,40,28), sm({map:mt, emissiveMap:mt, emissive:0xffffff, emissiveIntensity:.75, roughness:1}), 0,.95,0); const pl = new THREE.PointLight(0xfff4e0, 1.2, 2.5); pl.position.set(0,.95,0); c.add(pl); }
+    if(e==='synth'){ for(const s of [-1,1]){ part(c, box(.03,.85,.03), blk, s*.3,.4,0, 0,0,s*.0); part(c, box(.025,.025,.45), blk, s*.3,.02,0); part(c, box(.025,.85,.025), blk, s*.3,.4,0, .5,0,0); part(c, box(.025,.85,.025), blk, s*.3,.4,0, -.5,0,0); }
+      part(c, box(.9,.08,.32), sm({color:0x1a1a1a, roughness:.4}), 0,.82,0); part(c, box(.84,.015,.14), sm({color:0xf4f4f2, roughness:.4}), 0,.865,.07);
+      for(let k=0;k<30;k++){ if(k%7===2||k%7===6) continue; part(c, box(.016,.016,.08), blk, -.41+k*.0285,.88,.04); }
+      for(let k=0;k<8;k++) part(c, cyl(.012,.012,.02,12), sm({color:0xd9a640, metalness:.5, roughness:.3}), -.35+k*.06,.87,-.1); part(c, box(.14,.004,.06), glow(th.led[0],1), .3,.862,-.1); }
   }
   // แอร์เหนือบานเลื่อน
-  B(g, 2.6,3.4, 5.21,5.43, y+2.48,y+2.78, sm({color: officeTheme==='japandi' ? 0xf4f4f2 : 0x1b1c1e, roughness:.4}), false);
+  B(g, 2.6,3.4, 5.21,5.43, y+2.48,y+2.78, sm({color:th.ac, roughness:.4}), false); B(g, 2.63,3.37, 5.42,5.435, y+2.5,y+2.53, sm({color:0x555555}), false);
   return 5.3*2.67;
 }
 function buildSite(){
@@ -772,7 +1091,8 @@ const $ = id => document.getElementById(id);
 [['sW','W'],['sE','E'],['sB','Bk'],['sF','F'],['sG','G']].forEach(([id,k])=> $(id).addEventListener('input', e=>{ P[k] = +e.target.value; buildSite(); }));
 const bind = (id, g) => $(id).addEventListener('change', e => g.visible = e.target.checked);
 bind('kCar', gCar); bind('kZone', gZone); bind('kDim', gDim); bind('kLab', gLab); bind('kFurn', gFurn); bind('kPlant', gPlant); bind('kFence', gFence);
-const showTheme = ()=> $('tTheme').textContent = THEMES[officeTheme].desc; showTheme();
+$('themeOpts').innerHTML = Object.entries(THEMES).map(([k,t])=>`<button data-t="${k}"${k===officeTheme?' class="on"':''}><span class="sw" style="background:${hx(t.wall)};box-shadow:inset -5px 0 0 ${hx(t.led[0])}"></span>${t.name}</button>`).join('');
+const showTheme = ()=>{ const t = THEMES[officeTheme]; $('tTheme').innerHTML = `<b>${t.name}</b> — ${t.desc}<table class="spec">${(t.spec||[]).map(([a,b])=>`<tr><td>${a}</td><td>${b}</td></tr>`).join('')}</table>`; }; showTheme();
 document.querySelectorAll('#themeOpts button').forEach(b=> b.onclick = ()=>{ officeTheme = b.dataset.t; document.querySelectorAll('#themeOpts button').forEach(x=>x.classList.toggle('on', x===b)); showTheme(); if(opt!=='a3') document.querySelector('#opts [data-o=a3]').click(); else buildSite(); });
 document.querySelectorAll('#deskOpts button').forEach(b=> b.onclick = ()=>{ deskMode = b.dataset.d; document.querySelectorAll('#deskOpts button').forEach(x=>x.classList.toggle('on', x===b)); if(opt!=='a3') document.querySelector('#opts [data-o=a3]').click(); else buildSite(); });
 document.querySelectorAll('#opts button').forEach(b=> b.onclick = ()=>{ opt = b.dataset.o; document.querySelectorAll('#opts button').forEach(x=>x.classList.toggle('on', x===b)); buildSite(); });
@@ -796,7 +1116,7 @@ const views = {
   tv:    ()=>[[6.4, 1.95, 2.45],[1, 1.5, 2.45]],
   desk:  ()=>[[6.2, 1.95, 6.9],[10, 1.35, 7.3]],
   arch:  ()=>[[6.8, 1.95, 0.9],[6.825, 1.55, 5.1]],
-  office:()=> officeTheme==='command' ? [[4.6, 1.7, 5.45],[0.9, 1.15, 7.2]] : [[4.2, 1.65, 6.1],[0.9, 1.15, 7.2]],
+  office:()=> THEMES[officeTheme].wallSide==='media' ? [[4.6, 1.7, 5.45],[0.9, 1.15, 7.2]] : [[4.2, 1.65, 6.1],[0.9, 1.15, 7.2]],
   officeB:()=>[[0.9, 1.6, 5.6],[5.0, 1.5, 7.0]],
   officeT:()=>[[2.65, 9.5, 5.2],[2.65, 0, 6.45]],
   inside:()=>[[5.6, 13, -6.5],[5.6, .5, 3.8]],
